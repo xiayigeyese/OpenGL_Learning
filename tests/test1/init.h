@@ -19,7 +19,7 @@ inline void processInput(GLFWwindow* window) {
 	}
 }
 
-inline GLFWwindow* initWindow(const int width, const int height)
+inline GLFWwindow* initGLFWAndGLAD(const int width, const int height)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);

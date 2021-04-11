@@ -24,7 +24,7 @@ inline void testTexture()
 	const int width = 1000, height = 800;
 
 	//初始化openGL窗口和配置
-	GLFWwindow* window = initWindow(width, height);
+	GLFWwindow* window = initGLFWAndGLAD(width, height);
 
 	if (window == nullptr)
 	{

@@ -12,7 +12,7 @@ public:
 	Buffer(const Buffer& b) = delete;
 
 	Buffer& operator =(const Buffer& b) = delete;
-
+	                                                                  
 	Buffer(Buffer&& b) noexcept;
 
 	Buffer& operator=(Buffer&& b) noexcept;
@@ -62,10 +62,10 @@ inline void Buffer::reInitHandler()
 	glCreateBuffers(1, &m_handler);
 }
 
-inline void Buffer::setData(const void* p, const GLsizeiptr data_size, const GLenum usage) const
+inline void Buffer::setData(const void* data, const GLsizeiptr data_size, const GLenum usage) const
 {
 	assert(m_handler);
-	glNamedBufferData(m_handler, data_size, p, usage);
+	glNamedBufferData(m_handler, data_size, data, usage);
 }
 
 inline void Buffer::setSubData(const void* data, const GLsizeiptr data_size, const GLintptr offset) const
