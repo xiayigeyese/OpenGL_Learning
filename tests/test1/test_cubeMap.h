@@ -1,18 +1,14 @@
 #pragma once
 
 #include <vector>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 #include <opengl/opengl.h>
 #include "init.h"
-
-using namespace std;
-using namespace glm;
 
 struct SkyBoxVertex
 {
@@ -76,10 +72,10 @@ inline void testCubeMap1()
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    vector<CubeVertex> cubeVertices(36);
+    std::vector<CubeVertex> cubeVertices(36);
 	for(int i=0, k=0; k<36; i+=5)
 	{
-        cubeVertices[k++] = { vec3(vertices[i],vertices[i + 1],vertices[i + 2]), vec2(vertices[i + 3],vertices[i + 4]) };
+        cubeVertices[k++] = { glm::vec3(vertices[i],vertices[i + 1],vertices[i + 2]), glm::vec2(vertices[i + 3],vertices[i + 4]) };
 	}
 
     VertexArray vao;
@@ -101,12 +97,12 @@ inline void testCubeMap1()
     });
 
     shaderProgram.use();
-    mat4 model = mat4(1.0);
-    mat4 view = lookAt(vec3(0, 0, 3), vec3(0, 0, 2), vec3(0, 1, 0));
-    mat4 projection = perspective(radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
-    shaderProgram.setUniformValue<mat4>("model", model);
-	shaderProgram.setUniformValue<mat4>("view", view);
-    shaderProgram.setUniformValue<mat4>("projection", projection);
+    glm::mat4 model = glm::mat4(1.0);
+    glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 2), glm::vec3(0, 1, 0));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
+    shaderProgram.setUniformValue<glm::mat4>("model", model);
+	shaderProgram.setUniformValue<glm::mat4>("view", view);
+    shaderProgram.setUniformValue<glm::mat4>("projection", projection);
     shaderProgram.setUniformValue<int>("texture0", 0);
 
     glEnable(GL_DEPTH_TEST);
@@ -185,7 +181,7 @@ inline void testCubeMap()
         -1.0f, -1.0f,  1.0f,
          1.0f, -1.0f,  1.0f
     };
-    vector<SkyBoxVertex> skyboxVertices(36);
+    std::vector<SkyBoxVertex> skyboxVertices(36);
     for (int i = 0, k = 0; k < 36; i += 3)
     {
         skyboxVertices[k++] = { glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]) };
@@ -217,10 +213,10 @@ inline void testCubeMap()
         });
 
     skyboxShader.use();
-    mat4 view = mat3(lookAt(vec3(0, 0, 3), vec3(0, 0, 2), vec3(0, 1, 0)));
-    mat4 projection = perspective(radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
-    skyboxShader.setUniformValue<mat4>("view", view);
-    skyboxShader.setUniformValue<mat4>("projection", projection);
+    glm::mat4 view = glm::mat3(glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 2), glm::vec3(0, 1, 0)));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
+    skyboxShader.setUniformValue<glm::mat4>("view", view);
+    skyboxShader.setUniformValue<glm::mat4>("projection", projection);
     skyboxShader.setUniformValue<int>("skybox", 0);
 	
     glEnable(GL_DEPTH_TEST);
@@ -234,7 +230,6 @@ inline void testCubeMap()
 
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
-    	
         skyboxVao.bind();
         glActiveTexture(GL_TEXTURE0);
         cubeMap.bindTexUnit(0);

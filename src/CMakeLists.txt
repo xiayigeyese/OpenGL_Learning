@@ -11,7 +11,7 @@ add_library(opengl STATIC ${SRCS})
 
 FOREACH(_SRC IN ITEMS ${SRCS})
     GET_FILENAME_COMPONENT(SRC "${_SRC}" PATH)
-    STRING(REPLACE "${PROJECT_SOURCE_DIR}/include/opengl" "include" _GRP_PATH "${SRC}")
+    STRING(REPLACE "${PROJECT_SOURCE_DIR}/include" "include" _GRP_PATH "${SRC}")
     STRING(REPLACE "${PROJECT_SOURCE_DIR}/src" "src" _GRP_PATH "${_GRP_PATH}")
 	STRING(REPLACE "${PROJECT_SOURCE_DIR}/shaders" "shaders" _GRP_PATH "${_GRP_PATH}")
     STRING(REPLACE "/" "\\" _GRP_PATH "${_GRP_PATH}")
