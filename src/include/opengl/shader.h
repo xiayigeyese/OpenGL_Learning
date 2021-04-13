@@ -79,6 +79,7 @@ public:
 			sourceString << sourceFS.rdbuf();
 			sourceFS.close();
 			source = sourceString.str();
+			std::cout << source << std::endl;
 		}
 		catch (std::ifstream::failure& )
 		{
