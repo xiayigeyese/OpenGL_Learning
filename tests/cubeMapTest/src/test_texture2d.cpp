@@ -1,25 +1,15 @@
-#pragma once
-
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <opengl/opengl.h>
 #include "init.h"
 
-using namespace std;
-using namespace glm;
+#include "test_texture2d.h"
 
-struct Vertex {
-	glm::vec3 position;
-	glm::vec3 color;
-	glm::vec2 uvPos;
-};
-
-inline void testTexture()
+void testTexture()
 {
 	const int width = 1000, height = 800;
 
@@ -38,8 +28,8 @@ inline void testTexture()
 
 	// 设置shader
 	ShaderProgram shaderProgram({
-		VertexShader::loadFromFile("tests/test1/shaders/test1.vert").getHandler(),
-		FragmentShader::loadFromFile("tests/test1/shaders/test1.frag").getHandler()
+		VertexShader::loadFromFile("tests/cubeMapTest/shaders/test1.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/cubeMapTest/shaders/test1.frag").getHandler()
 		});
 	UniformVariable<glm::mat4> u_vs_model = shaderProgram.getUniformVariable<glm::mat4>("model");
 
@@ -52,7 +42,7 @@ inline void testTexture()
 
 	// 纹理数据
 	Texture2D texture;
-	texture.loadFromFile("resources/textures/container.png", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	texture.loadFromFile("resources/textures/container.png");
 
 	shaderProgram.use();
 	shaderProgram.setUniformValue<int>("texture0", 0);

@@ -12,7 +12,6 @@ class SkyBoxPass
 public:
 	SkyBoxPass()
 		:skyboxVao(VertexArray()),
-		 vbo(VertexBuffer<SkyBoxVertex>()),
 		 shader(ShaderProgram()),
 		 cubeMap(CubeMap())
 	{ 
@@ -27,7 +26,6 @@ public:
 
 	SkyBoxPass(SkyBoxPass&& skyBoxPass) noexcept
         :skyboxVao(std::move(skyBoxPass.skyboxVao)),
-	     vbo(std::move(skyBoxPass.vbo)),
 		 shader(std::move(skyBoxPass.shader)),
 	     cubeMap(std::move(skyBoxPass.cubeMap)),
 	     u_vs_view(skyBoxPass.u_vs_view),
@@ -40,7 +38,6 @@ public:
     SkyBoxPass& operator=(SkyBoxPass&& skyBoxPass) noexcept
     {
         skyboxVao.operator=(std::move(skyBoxPass.skyboxVao));
-        vbo.operator=(std::move(skyBoxPass.vbo));
         shader.operator=(std::move(skyBoxPass.shader));
         cubeMap.operator=(std::move(skyBoxPass.cubeMap));
         u_vs_view = skyBoxPass.u_vs_view;
@@ -51,7 +48,6 @@ public:
 	~SkyBoxPass()
     {
         skyboxVao.destroy();
-        vbo.destroy();
         shader.destroy();
         cubeMap.destroy();
     }
@@ -82,55 +78,47 @@ public:
 private:
     void initSkyBox(std::array<std::string, 6>& filePaths)
     {
-        float vertices[] = {
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f
-        };
-        std::vector<SkyBoxVertex> skyboxVertices(36);
-        for (int i = 0, k = 0; k < 36; i += 3)
+        std::array<SkyBoxVertex, 36> skyboxVertices =
         {
-            skyboxVertices[k++] = { glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]) };
-        }
+			SkyBoxVertex{{-1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f,  1.0f}},
+			SkyBoxVertex{{-1.0f,  1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f, -1.0f}},
+			SkyBoxVertex{{-1.0f, -1.0f,  1.0f}},
+			SkyBoxVertex{{ 1.0f, -1.0f,  1.0f}}
+        };
         
+        VertexBuffer<SkyBoxVertex> vbo;
         unsigned int bindingIndex = 0;
         VertexAttrib positionAttrib = { 0, 3, GL_FLOAT, offsetof(SkyBoxVertex, position) };
         vbo.setData(skyboxVertices.data(), skyboxVertices.size());
@@ -152,7 +140,6 @@ private:
 
 private:
 	VertexArray skyboxVao;
-    VertexBuffer<SkyBoxVertex> vbo;
 	ShaderProgram shader;
 	CubeMap cubeMap;
     UniformVariable<glm::mat4> u_vs_view, u_vs_projection;

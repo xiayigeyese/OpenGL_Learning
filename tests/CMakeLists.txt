@@ -1,3 +1,5 @@
 project(tests)
 
-add_subdirectory(test1)
+add_subdirectory(cubeMapTest)
+
+add_subdirectory(shadowMapTest)

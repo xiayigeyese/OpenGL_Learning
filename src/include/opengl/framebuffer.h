@@ -7,25 +7,25 @@
 #include "texture2d.h"
 #include "renderbuffer.h"
 
-class FrameBuffer
+class Framebuffer
 {
 public:
-	FrameBuffer() :m_handler(0) 
+	Framebuffer() :m_handler(0) 
 	{
 		glCreateFramebuffers(1, &m_handler);
 	}
 
-	FrameBuffer(const FrameBuffer&) = delete;
+	Framebuffer(const Framebuffer&) = delete;
 
-	FrameBuffer(FrameBuffer&& framebuffer) noexcept
+	Framebuffer(Framebuffer&& framebuffer) noexcept
 		:m_handler(framebuffer.m_handler)
 	{
 		framebuffer.m_handler = 0;
 	}
 
-	FrameBuffer& operator=(const FrameBuffer&) = delete;
+	Framebuffer& operator=(const Framebuffer&) = delete;
 
-	FrameBuffer& operator=(FrameBuffer&& framebuffer) noexcept
+	Framebuffer& operator=(Framebuffer&& framebuffer) noexcept
 	{
 		destory();
 		m_handler = framebuffer.m_handler;
@@ -33,7 +33,7 @@ public:
 		return *this;
 	}
 
-	~FrameBuffer()
+	~Framebuffer()
 	{
 		destory();
 	}
@@ -55,7 +55,7 @@ public:
 	// check complete, and bind framebuffer, then use it
 	void bind()
 	{
-		assert(isComplete());
+		assert(m_handler);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_handler);
 	}
 
@@ -65,19 +65,31 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void attachTexture2D(GLenum attachment, Texture2D& texture)
+	void attachTexture2D(const GLenum attachment, const Texture2D& texture)
 	{
 		assert(m_handler);
 		glNamedFramebufferTexture(m_handler, attachment, texture.getHandler(), 0);
 	}
 
-	void attachRenderBuffer(GLenum attachment, Renderbuffer& renderbuffer)
+	void attachRenderBuffer(const GLenum attachment, const Renderbuffer& renderbuffer) const
 	{
 		assert(m_handler);
 		glNamedFramebufferRenderbuffer(m_handler, attachment, GL_RENDERBUFFER, renderbuffer.getHandler());
 	}
 
-	bool isComplete()
+	void setColorBufferToDraw(GLenum buffer) const
+	{
+		assert(m_handler);
+		glNamedFramebufferDrawBuffer(m_handler, buffer);
+	}
+
+	void setColorBufferToRead(GLenum buffer) const
+	{
+		assert(m_handler);
+		glNamedFramebufferReadBuffer(m_handler, buffer);
+	}
+
+	bool isComplete() const
 	{
 		assert(m_handler);
 		if (glCheckNamedFramebufferStatus(m_handler, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -88,7 +100,7 @@ public:
 		return true;
 	}
 
-	GLuint getHandler() const
+	[[nodiscard]] GLuint getHandler() const
 	{
 		return m_handler;
 	}

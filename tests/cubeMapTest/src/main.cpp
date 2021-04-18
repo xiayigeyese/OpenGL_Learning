@@ -3,8 +3,8 @@
 
 int main()
 {
-	// testCubeMap();
 	// testTexture();
+	// testCubeMap();
 	testSkyBoxPass();
 	return 0;
 }

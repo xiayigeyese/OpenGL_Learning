@@ -75,9 +75,5 @@ public:
 		const void* data,
 		bool genMipMap = true) const;
 
-	void loadFromFile(const std::string& filePath,
-		const GLenum internalFormat,
-		const GLenum format,
-		const GLenum type,
-		bool genMipMap = true) const;
+	void loadFromFile(const std::string& filePath, bool genMipMap = true) const;
 };

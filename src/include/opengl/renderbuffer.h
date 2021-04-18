@@ -46,25 +46,25 @@ public:
 		glCreateRenderbuffers(1, &m_handler);
 	}
 
-	void allocateStorage(GLenum format, unsigned int width, unsigned int height)
+	void allocateStorage(const GLenum format, const unsigned int width, const unsigned int height) const
 	{
 		assert(m_handler);
 		glNamedRenderbufferStorage(m_handler, format, width, height);
 	}
 
-	void bind()
+	void bind() const 
 	{
 		assert(m_handler);
 		glBindFramebuffer(GL_RENDERBUFFER, m_handler);
 	}
 
-	void unBind()
+	void unBind() const 
 	{
 		assert(m_handler);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
-	GLuint getHandler() const 
+	[[nodiscard]] GLuint getHandler() const 
 	{
 		return m_handler;
 	}

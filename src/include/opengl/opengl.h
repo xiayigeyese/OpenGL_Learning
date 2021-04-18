@@ -7,3 +7,5 @@
 #include "vertex_buffer.h"
 #include "vertex_array.h"
 #include "vertex_attrib.h"
+#include "framebuffer.h"
+#include "renderbuffer.h"

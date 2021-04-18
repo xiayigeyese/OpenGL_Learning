@@ -1,28 +1,6 @@
-#pragma once
+#include "test_cubeMap.h"
 
-#include <vector>
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <imgui.h>
-#include <opengl/opengl.h>
-#include <pass/skyboxPass.h>
-#include "init.h"
-
-struct SkyBoxVertex
-{
-	glm::vec3 position;
-};
-
-struct CubeVertex
-{
-    glm::vec3 position;
-    glm::vec2 uvCoords;
-};
-
-inline void testCubeMap1()
+void testCubeMap1()
 {
     const int width = 800, height = 600;
     GLFWwindow* window = initGLFWAndGLAD(width, height);
@@ -74,10 +52,10 @@ inline void testCubeMap1()
     };
 
     std::vector<CubeVertex> cubeVertices(36);
-	for(int i=0, k=0; k<36; i+=5)
-	{
+    for (int i = 0, k = 0; k < 36; i += 5)
+    {
         cubeVertices[k++] = { glm::vec3(vertices[i],vertices[i + 1],vertices[i + 2]), glm::vec2(vertices[i + 3],vertices[i + 4]) };
-	}
+    }
 
     VertexArray vao;
     VertexBuffer<CubeVertex> vbo;
@@ -90,24 +68,24 @@ inline void testCubeMap1()
     vao.bindVertexArrayAttrib(bindingIndex, uvCoordAttrib, GL_FALSE);
 
     Texture2D cubeTexture;
-    cubeTexture.loadFromFile("resources/textures/container.jpg", GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+    cubeTexture.loadFromFile("resources/textures/container.jpg");
 
     ShaderProgram shaderProgram({
-        VertexShader::loadFromFile("tests/test1/shaders/cubeMap.vert").getHandler(),
-        FragmentShader::loadFromFile("tests/test1/shaders/cubeMap.frag").getHandler()
-    });
+        VertexShader::loadFromFile("tests/cubeMapTest/shaders/cubeMap.vert").getHandler(),
+        FragmentShader::loadFromFile("tests/cubeMapTest/shaders/cubeMap.frag").getHandler()
+        });
 
     shaderProgram.use();
     glm::mat4 model = glm::mat4(1.0);
     glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 2), glm::vec3(0, 1, 0));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
     shaderProgram.setUniformValue<glm::mat4>("model", model);
-	shaderProgram.setUniformValue<glm::mat4>("view", view);
+    shaderProgram.setUniformValue<glm::mat4>("view", view);
     shaderProgram.setUniformValue<glm::mat4>("projection", projection);
     shaderProgram.setUniformValue<int>("texture0", 0);
 
     glEnable(GL_DEPTH_TEST);
-	
+
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
@@ -121,7 +99,7 @@ inline void testCubeMap1()
         cubeTexture.bindTexUnit(0);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         vao.unBind();
-    	
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -132,8 +110,7 @@ inline void testCubeMap1()
     glfwTerminate();
 }
 
-
-inline void testCubeMap()
+void testCubeMap()
 {
     const int width = 800, height = 600;
     GLFWwindow* window = initGLFWAndGLAD(width, height);
@@ -209,15 +186,15 @@ inline void testCubeMap()
         GL_UNSIGNED_BYTE);
 
     ShaderProgram skyboxShader({
-        VertexShader::loadFromFile("tests/test1/shaders/skybox.vert").getHandler(),
-        FragmentShader::loadFromFile("tests/test1/shaders/skybox.frag").getHandler()
+        VertexShader::loadFromFile("tests/cubeMapTest/shaders/skybox.vert").getHandler(),
+        FragmentShader::loadFromFile("tests/cubeMapTest/shaders/skybox.frag").getHandler()
         });
 
     skyboxShader.use();
     UniformVariable<glm::mat4> u_vs_view = skyboxShader.getUniformVariable<glm::mat4>("view");
     UniformVariable<glm::mat4> u_vs_projection = skyboxShader.getUniformVariable<glm::mat4>("projection");
     skyboxShader.setUniformValue<int>("skybox", 0);
-	
+
     glEnable(GL_DEPTH_TEST);
     int theta = 0;
 
@@ -242,7 +219,7 @@ inline void testCubeMap()
         glDrawArrays(GL_TRIANGLES, 0, 36);
         skyboxVao.unBind();
         glDepthFunc(GL_LESS);
-    	
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -254,14 +231,13 @@ inline void testCubeMap()
     glfwTerminate();
 }
 
-
-inline void testSkyBoxPass()
+void testSkyBoxPass()
 {
     const int width = 800, height = 600;
     GLFWwindow* window = initGLFWAndGLAD(width, height);
     if (window == nullptr) return;
 
-    
+
     std::array<std::string, 6> filePaths = {
         "resources/textures/skybox/right.jpg",
         "resources/textures/skybox/left.jpg",
