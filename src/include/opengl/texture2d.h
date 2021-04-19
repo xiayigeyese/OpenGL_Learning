@@ -63,7 +63,7 @@ public:
 		}
 		else
 		{
-			setTexFilterParameter(GL_NEAREST, GL_LINEAR);
+			setTexFilterParameter(GL_LINEAR, GL_LINEAR);
 		}
 	}
    

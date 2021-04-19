@@ -20,8 +20,7 @@ void Texture2D::loadFromFile(const std::string& filePath, bool genMipMap) const
 	auto* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
 	if (data == nullptr)
 	{
-		std::cout << "Texture2D: load texture data failure" << std::endl;
-		return;
+		throw std::runtime_error("Texture2D: load texture data failure");
 	}
 	GLenum internalFormat, format;
 	if (nrChannels == 1)
@@ -40,6 +39,6 @@ void Texture2D::loadFromFile(const std::string& filePath, bool genMipMap) const
 		format = GL_RGBA;
 	}
 	
-	loadFromMemory(width, height, internalFormat, format, GL_UNSIGNED_BYTE, data);
+	loadFromMemory(width, height, internalFormat, format, GL_UNSIGNED_BYTE, data, genMipMap);
 	stbi_image_free(data);
 }

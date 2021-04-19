@@ -90,6 +90,11 @@ public:
 		return m_zoom;
 	}
 
+	[[nodiscard]] glm::vec3 getPosition() const
+	{
+		return m_position;
+	}
+
 	[[nodiscard]] glm::mat4 getViewMatrix() const
 	{
 		return glm::lookAt(m_position, m_position + m_front,  m_up);

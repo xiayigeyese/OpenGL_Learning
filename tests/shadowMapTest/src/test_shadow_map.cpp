@@ -6,7 +6,6 @@
 #include <app/app.h>
 
 #include "test_shadow_map.h"
-#include "init.h"
 
 void initBackVAO(VertexArray& backVAO, VertexBuffer<BackVertex>& vbo)
 {
@@ -171,7 +170,6 @@ void testDepthMap()
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
-		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -267,68 +265,129 @@ void testShadowMap()
 
 	// set light
 	glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+	float near = 1.0f, far = 7.5f;
+	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near, far);
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-	// load texture
-	Texture2D texture;
-	texture.loadFromFile("resources/textures/wood.png");
+	// shadow map
+	int depthMapWidth = 1024, depthMapHeight = 1024;
+	Texture2D depthMap;
+	depthMap.loadFromMemory(
+		depthMapWidth, 
+		depthMapHeight, 
+		GL_DEPTH_COMPONENT32F, 
+		GL_DEPTH_COMPONENT32F, 
+		GL_FLOAT, 
+		nullptr, 
+		false);
+
+	Framebuffer fbo;
+	fbo.attachTexture2D(GL_DEPTH_ATTACHMENT, depthMap);
+	fbo.setColorBufferToDraw(GL_NONE);
+	fbo.setColorBufferToRead(GL_NONE);
+
+	// depthShader
+	ShaderProgram depthShader({
+		VertexShader::loadFromFile("tests/shadowMapTest/shaders/depthMap.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/shadowMapTest/shaders/depthMap.frag").getHandler()
+	});
+	UniformVariable<glm::mat4> depthMap_vs_model = depthShader.getUniformVariable<glm::mat4>("model");
+	// -> vs
+	depthShader.setUniformValue("lightSpaceMatrix", lightSpaceMatrix);
+	
+	// load texture for object
+	Texture2D diffuseMap;
+	diffuseMap.loadFromFile("resources/textures/wood.png");
 	
 	// load shader
 	ShaderProgram shadowMapShader({
 		VertexShader::loadFromFile("tests/shadowMapTest/shaders/shadowMap.vert").getHandler(),
 		FragmentShader::loadFromFile("tests/shadowMapTest/shaders/shadowMap.frag").getHandler()
 	});
-
     UniformVariable<glm::mat4> u_vs_model = shadowMapShader.getUniformVariable<glm::mat4>("model");
 	UniformVariable<glm::mat4> u_vs_view = shadowMapShader.getUniformVariable<glm::mat4>("view");
 	UniformVariable<glm::mat4> u_vs_projection = shadowMapShader.getUniformVariable<glm::mat4>("projection");
-
+	UniformVariable<glm::vec3> u_fs_viewPos = shadowMapShader.getUniformVariable<glm::vec3>("viewPos");
+	// -> vs
+	shadowMapShader.setUniformValue("lightSpaceMatrix", lightSpaceMatrix);
+	// -> fs
 	shadowMapShader.setUniformValue("diffuseMap", 0);
+	shadowMapShader.setUniformValue("depthMap", 1);
 	shadowMapShader.setUniformValue("lightPos", lightPos);
 
+	// world modelMatrix
+	// cube1
+	glm::mat4 model1 = glm::mat4(1.0f);
+	model1 = glm::translate(model1, glm::vec3(0.0f, 1.5f, 0.0));
+	model1 = glm::scale(model1, glm::vec3(0.5f));
+	// cube2
+	glm::mat4 model2 = glm::mat4(1.0);
+	model2 = glm::translate(model2, glm::vec3(2.0f, 0.0f, 1.0));
+	model2 = glm::scale(model2, glm::vec3(0.5f));
+	// cube3
+	glm::mat4 model3 = glm::mat4(1.0f);
+	model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, 2.0));
+	model3 = glm::rotate(model3, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	model3 = glm::scale(model3, glm::vec3(0.25));
+	// plane
+	glm::mat4 model = glm::mat4(1.0f);
+	
 	glEnable(GL_DEPTH_TEST);
 	while(!glfwWindowShouldClose(window))
 	{
-
 		app.getKeyPressInput();
 		cameraController.processKeyPressInput();
 		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shadowMapShader.use();
-		glActiveTexture(0);
-		texture.bindTexUnit(0);
-		shadowMapShader.setUniformValue(u_vs_view, camera.getViewMatrix());
-		shadowMapShader.setUniformValue(u_vs_projection, camera.getProjectionMatrix());
-
+		// render to depthMap
+		glViewport(0, 0, depthMapWidth, depthMapHeight);
+		fbo.bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		depthShader.use();
 		// cube1, cube2, cube3
 		cubeVAO.bind();
-		
-		glm::mat4 model1 = glm::mat4(1.0f);
-		model1 = glm::translate(model1, glm::vec3(0.0f, 1.5f, 0.0));
-		model1 = glm::scale(model1, glm::vec3(0.5f));
+		depthShader.setUniformValue(depthMap_vs_model, model1);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		depthShader.setUniformValue(depthMap_vs_model, model2);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		depthShader.setUniformValue(depthMap_vs_model, model3);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		cubeVAO.unBind();
+		// plane
+		planeVAO.bind();
+		depthShader.setUniformValue(depthMap_vs_model, model);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		planeVAO.unBind();
+		fbo.unBind();
+
+		// render with depthMap
+		glViewport(0, 0, width, height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shadowMapShader.use();
+		// -> vs
+		shadowMapShader.setUniformValue(u_vs_view, camera.getViewMatrix());
+		shadowMapShader.setUniformValue(u_vs_projection, camera.getProjectionMatrix());
+		// -> fs
+		shadowMapShader.setUniformValue(u_fs_viewPos, camera.getPosition());
+		glActiveTexture(0);
+		diffuseMap.bindTexUnit(0);
+		glActiveTexture(1);
+		depthMap.bindTexUnit(1);
+		// cube1, cube2, cube3
+		cubeVAO.bind();
 		shadowMapShader.setUniformValue(u_vs_model, model1);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		glm::mat4 model2 = glm::mat4(1.0);
-		model2 = glm::translate(model2, glm::vec3(2.0f, 0.0f, 1.0));
-		model2 = glm::scale(model2, glm::vec3(0.5f));
 		shadowMapShader.setUniformValue(u_vs_model, model2);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		glm::mat4 model3 = glm::mat4(1.0f);
-		model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, 2.0));
-		model3 = glm::rotate(model3, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-		model3 = glm::scale(model3, glm::vec3(0.25));
 		shadowMapShader.setUniformValue(u_vs_model, model3);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
 		cubeVAO.unBind();
-
 		// plane
-		glm::mat4 model = glm::mat4(1.0f);
-		shadowMapShader.setUniformValue(u_vs_model, model);
 		planeVAO.bind();
+		shadowMapShader.setUniformValue(u_vs_model, model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		planeVAO.unBind();
 

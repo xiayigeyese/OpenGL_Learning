@@ -6,10 +6,12 @@ layout (location = 2) in vec2 aUVCoords;
 out vec3 fragPos;
 out vec3 fragNormal;
 out vec2 fragTexCoords;
+out vec4 lightSpacePos;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 lightSpaceMatrix;
 
 void main()
 {
@@ -18,4 +20,5 @@ void main()
 	fragPos = worldPos.xyz;
 	fragNormal = transpose(inverse(mat3(model))) * aNormal;
 	fragTexCoords = aUVCoords;
+	lightSpacePos = lightSpaceMatrix * worldPos;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <cassert>
 
 #include <glad/glad.h>
@@ -74,7 +75,7 @@ public:
 	void bindTexUnit(GLuint unit = 0) const
 	{
 		assert(m_handler);
-		glBindTextureUnit(0, m_handler);
+		glBindTextureUnit(unit, m_handler);
 	}
 
 protected:
