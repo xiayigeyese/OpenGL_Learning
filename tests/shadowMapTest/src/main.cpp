@@ -1,10 +1,9 @@
-// #include <test_shadow_map.h>
-#include <app/application.h>
+#include <test_shadow_map.h>
 
 int main()
 {
 	// testDepthMap();
-	// testShadowMap();
-	Application app("opengl", 800, 600);
+	testShadowMap();
+
 	return 0;
 }

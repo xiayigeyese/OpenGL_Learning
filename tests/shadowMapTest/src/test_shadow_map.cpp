@@ -1,7 +1,9 @@
+#include <string>
+
 #include <array>
 #include <glm/gtc/matrix_transform.hpp>
 
-
+#include <app/app.h>
 
 #include "test_shadow_map.h"
 #include "init.h"
@@ -28,42 +30,48 @@ void initCubeVAO(VertexArray& cubeVAO, VertexBuffer<CubeVertex>& vbo)
 {
 	std::array<CubeVertex, 36> cubeVertices =
 	{
-		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f,  0.0f, 1.0f}, {0.0f, 0.0f}},
-		CubeVertex{{ 1.0f,  1.0f, -1.0f}, { 0.0f,  0.0f, 1.0f}, {1.0f, 1.0f}},
-		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 0.0f,  0.0f, 1.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f,  1.0f, -1.0f}, { 0.0f,  0.0f, 1.0f}, {1.0f, 1.0f}},
-		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f,  0.0f, 1.0f}, {0.0f, 0.0f}},
-		CubeVertex{{-1.0f,  1.0f, -1.0f}, { 0.0f,  0.0f, 1.0f}, {0.0f, 1.0f}},
-		CubeVertex{{-1.0f, -1.0f,  1.0f}, { 0.0f,  0.0f, 1.0f}, {0.0f, 0.0f}},
-		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 0.0f,  0.0f, 1.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 0.0f,  0.0f, 1.0f}, {1.0f, 1.0f}},
-		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 0.0f,  0.0f, 1.0f}, {1.0f, 1.0f}},
-		CubeVertex{{-1.0f,  1.0f,  1.0f}, { 0.0f,  0.0f, 1.0f}, {0.0f, 1.0f}},
-		CubeVertex{{-1.0f, -1.0f,  1.0f}, { 0.0f,  0.0f, 1.0f}, {0.0f, 0.0f}},
-		CubeVertex{{-1.0f,  1.0f,  1.0f}, {-1.0f,  0.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{-1.0f,  1.0f, -1.0f}, {-1.0f,  0.0f, 0.0f}, {1.0f, 1.0f}},
-		CubeVertex{{-1.0f, -1.0f, -1.0f}, {-1.0f,  0.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{-1.0f, -1.0f, -1.0f}, {-1.0f,  0.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{-1.0f, -1.0f,  1.0f}, {-1.0f,  0.0f, 0.0f}, {0.0f, 0.0f}},
-		CubeVertex{{-1.0f,  1.0f,  1.0f}, {-1.0f,  0.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 1.0f,  0.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 1.0f,  0.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{ 1.0f,  1.0f, -1.0f}, { 1.0f,  0.0f, 0.0f}, {1.0f, 1.0f}},
-		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 1.0f,  0.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 1.0f,  0.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 1.0f,  0.0f, 0.0f}, {0.0f, 0.0f}},
-		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}},
-		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{-1.0f, -1.0f,  1.0f}, { 0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
-		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{-1.0f,  1.0f, -1.0f}, { 0.0f,  1.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{ 1.0f,  1.0f , 1.0f}, { 0.0f,  1.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{ 1.0f,  1.0f, -1.0f}, { 0.0f,  1.0f, 0.0f}, {1.0f, 1.0f}},
-		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f, 0.0f}, {1.0f, 0.0f}},
-		CubeVertex{{-1.0f,  1.0f, -1.0f}, { 0.0f,  1.0f, 0.0f}, {0.0f, 1.0f}},
-		CubeVertex{{-1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f, 0.0f}, {0.0f, 0.0f}}
+		// back face
+		CubeVertex{{-1.0f, -1.0f, -1.0f},  {0.0f,  0.0f, -1.0f}, {0.0f, 0.0f}}, // bottom-left
+		CubeVertex{{ 1.0f,  1.0f, -1.0f},  {0.0f,  0.0f, -1.0f}, {1.0f, 1.0f}}, // top-right
+		CubeVertex{{ 1.0f, -1.0f, -1.0f},  {0.0f,  0.0f, -1.0f}, {1.0f, 0.0f}}, // bottom-right         
+		CubeVertex{{ 1.0f,  1.0f, -1.0f},  {0.0f,  0.0f, -1.0f}, {1.0f, 1.0f}}, // top-right
+		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, {0.0f, 0.0f}}, // bottom-left
+		CubeVertex{{-1.0f,  1.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, {0.0f, 1.0f}}, // top-left
+		// front face
+		CubeVertex{{-1.0f, -1.0f,  1.0f}, { 0.0f,  0.0f,  1.0f}, {0.0f, 0.0f}}, // bottom-left
+		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 0.0f,  0.0f,  1.0f}, {1.0f, 0.0f}}, // bottom-right
+		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 0.0f,  0.0f,  1.0f}, {1.0f, 1.0f}}, // top-right
+		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 0.0f,  0.0f,  1.0f}, {1.0f, 1.0f}}, // top-right
+		CubeVertex{{-1.0f,  1.0f,  1.0f}, { 0.0f,  0.0f,  1.0f}, {0.0f, 1.0f}}, // top-left
+		CubeVertex{{-1.0f, -1.0f,  1.0f}, { 0.0f,  0.0f,  1.0f}, {0.0f, 0.0f}}, // bottom-left
+		// left face
+		CubeVertex{{-1.0f,  1.0f,  1.0f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}}, // top-right
+		CubeVertex{{-1.0f,  1.0f, -1.0f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}}, // top-left
+		CubeVertex{{-1.0f, -1.0f, -1.0f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}}, // bottom-left
+		CubeVertex{{-1.0f, -1.0f, -1.0f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}}, // bottom-left
+		CubeVertex{{-1.0f, -1.0f,  1.0f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}}, // bottom-right
+		CubeVertex{{-1.0f,  1.0f,  1.0f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}}, // top-right
+		// right face
+		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}}, // top-left
+		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}}, // bottom-right
+		CubeVertex{{ 1.0f,  1.0f, -1.0f}, { 1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}}, // top-right         
+		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}}, // bottom-right
+		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}}, // top-left
+		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}}, // bottom-left     
+		// bottom face
+		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f,  0.0f}, {0.0f, 1.0f}}, // top-right
+		CubeVertex{{ 1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 1.0f}}, // top-left
+		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 0.0f}}, // bottom-left
+		CubeVertex{{ 1.0f, -1.0f,  1.0f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 0.0f}}, // bottom-left
+		CubeVertex{{-1.0f, -1.0f,  1.0f}, { 0.0f, -1.0f,  0.0f}, {0.0f, 0.0f}}, // bottom-right
+		CubeVertex{{-1.0f, -1.0f, -1.0f}, { 0.0f, -1.0f,  0.0f}, {0.0f, 1.0f}}, // top-right
+		// top face
+		CubeVertex{{-1.0f,  1.0f, -1.0f}, { 0.0f,  1.0f,  0.0f}, {0.0f, 1.0f}}, // top-left
+		CubeVertex{{ 1.0f,  1.0f , 1.0f}, { 0.0f,  1.0f,  0.0f}, {1.0f, 0.0f}}, // bottom-right
+		CubeVertex{{ 1.0f,  1.0f, -1.0f}, { 0.0f,  1.0f,  0.0f}, {1.0f, 1.0f}}, // top-right     
+		CubeVertex{{ 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f,  0.0f}, {1.0f, 0.0f}}, // bottom-right
+		CubeVertex{{-1.0f,  1.0f, -1.0f}, { 0.0f,  1.0f,  0.0f}, {0.0f, 1.0f}}, // top-left
+		CubeVertex{{-1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f,  0.0f}, {0.0f, 0.0f}}  // bottom-left 
 	};
 	vbo.setData(cubeVertices.data(), cubeVertices.size());
 	unsigned int bindingIndex = 0;
@@ -85,7 +93,7 @@ void initPlaneVAO(VertexArray& planeVAO, VertexBuffer<PlaneVertex>& vbo)
 		PlaneVertex{{-25.0f, -0.5f, -25.0f}, {0.0f, 1.0f, 0.0f}, { 0.0f, 25.0f}},
 		PlaneVertex{{ 25.0f, -0.5f,  25.0f}, {0.0f, 1.0f, 0.0f}, {25.0f,  0.0f}},
 		PlaneVertex{{-25.0f, -0.5f, -25.0f}, {0.0f, 1.0f, 0.0f}, { 0.0f, 25.0f}},
-		PlaneVertex{{ 25.0f, -0.5f, -25.0f}, {0.0f, 1.0f, 0.0f}, {25.0f, 10.0f}}
+		PlaneVertex{{ 25.0f, -0.5f, -25.0f}, {0.0f, 1.0f, 0.0f}, {25.0f, 25.0f}}
 	};
 	vbo.setData(planeVertices.data(), planeVertices.size());
 	unsigned int bindingIndex = 0;
@@ -100,8 +108,10 @@ void initPlaneVAO(VertexArray& planeVAO, VertexBuffer<PlaneVertex>& vbo)
 
 void testDepthMap()
 {
+	const std::string title = "OpenGL_learning";
 	const int width = 800, height = 600;
-	GLFWwindow* window = initGLFWAndGLAD(width, height);
+	const Application app(title, width, height);
+	GLFWwindow* window = app.getWindow();
 	if (window == nullptr) return;
 
 	// set data
@@ -161,7 +171,7 @@ void testDepthMap()
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
-		processInput(window);
+		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -230,16 +240,23 @@ void testDepthMap()
 
 void testShadowMap()
 {
+	// init app
+	const std::string title = "OpenGL_learning";
 	const int width = 800, height = 600;
-	GLFWwindow* window = initGLFWAndGLAD(width, height);
-	if (window == nullptr) return;
+	const Application app(title, width, height);
+	GLFWwindow* window = app.getWindow();
+	Input* input = app.getInput();
 
-	// set camera
-	// Camera camera(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	float lastFrameTime = 0.0f, duringTime = 0.0f;
-
-	glfwSetScrollCallback(window, [](GLFWwindow*, double xOffset, double yOffset) ->void {});
-	
+	// init camera
+	Camera camera = Camera::perspectiveCamera(
+		glm::vec3(0, 0, 3),
+		glm::vec3(0, 0, 2),
+		glm::vec3(0, 1, 0),
+		45.0f,
+		static_cast<float>(width) / height,
+		0.1f, 
+		100.0f);
+	CameraController cameraController(camera, *input);
 
 	// set data
 	VertexArray cubeVAO, planeVAO;
@@ -261,28 +278,32 @@ void testShadowMap()
 		FragmentShader::loadFromFile("tests/shadowMapTest/shaders/shadowMap.frag").getHandler()
 	});
 
-	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
-	UniformVariable<glm::mat4> u_vs_model = shadowMapShader.getUniformVariable<glm::mat4>("model");
-	shadowMapShader.setUniformValue("view", view);
-	shadowMapShader.setUniformValue("projection", projection);
+    UniformVariable<glm::mat4> u_vs_model = shadowMapShader.getUniformVariable<glm::mat4>("model");
+	UniformVariable<glm::mat4> u_vs_view = shadowMapShader.getUniformVariable<glm::mat4>("view");
+	UniformVariable<glm::mat4> u_vs_projection = shadowMapShader.getUniformVariable<glm::mat4>("projection");
+
 	shadowMapShader.setUniformValue("diffuseMap", 0);
 	shadowMapShader.setUniformValue("lightPos", lightPos);
 
 	glEnable(GL_DEPTH_TEST);
 	while(!glfwWindowShouldClose(window))
 	{
-		processInput(window);
+
+		app.getKeyPressInput();
+		cameraController.processKeyPressInput();
+		
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shadowMapShader.use();
 		glActiveTexture(0);
 		texture.bindTexUnit(0);
+		shadowMapShader.setUniformValue(u_vs_view, camera.getViewMatrix());
+		shadowMapShader.setUniformValue(u_vs_projection, camera.getProjectionMatrix());
 
 		// cube1, cube2, cube3
 		cubeVAO.bind();
-
+		
 		glm::mat4 model1 = glm::mat4(1.0f);
 		model1 = glm::translate(model1, glm::vec3(0.0f, 1.5f, 0.0));
 		model1 = glm::scale(model1, glm::vec3(0.5f));

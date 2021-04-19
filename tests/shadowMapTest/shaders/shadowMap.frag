@@ -14,7 +14,7 @@ void main()
     vec3 objectColor = texture(diffuseMap, fragTexCoords).rgb;
 	objectColor = pow(objectColor,  vec3(2.2f));
 	
-	vec3 lightColor = vec3(0.3);
+	vec3 lightColor = vec3(0.5);
 
 	vec3 normal = normalize(fragNormal);
 	vec3 lightDir = normalize(lightPos - fragPos);

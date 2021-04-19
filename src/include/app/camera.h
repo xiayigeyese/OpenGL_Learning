@@ -19,11 +19,13 @@ public:
 	{
 		// view 
 		m_front = normalize(center - position);
-		m_worldUp = worldUp;
-		if (abs(dot(m_front, m_worldUp)) < 0.01f)
+		m_worldUp = normalize(worldUp);
+		
+		/*if (1 - abs(dot(m_front, m_worldUp)) < 0.01f)
 		{
 			m_worldUp.x += 1;
-		}
+		}*/
+		
 		m_right = normalize(cross(m_front, m_worldUp));
 		m_up = glm::normalize(glm::cross(m_right, m_front));
 		m_yaw = -90.0f;

@@ -18,6 +18,21 @@ public:
 		glfwTerminate();
 	}
 
+	void getKeyPressInput() const;
+
+	[[nodiscard]] GLFWwindow* getWindow() const
+	{
+		return m_window;
+	}
+
+	[[nodiscard]] Input* getInput() const
+	{
+		return m_input;
+	}
+
+private:
+	void setEventsCallback() const;
+
 private:
 	GLFWwindow* m_window;
 	Input* m_input;
