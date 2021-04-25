@@ -4,7 +4,8 @@ file(GLOB_RECURSE SRCS
 		"${PROJECT_SOURCE_DIR}/*.cpp"
 		"${PROJECT_SOURCE_DIR}/*.h"
 		"${PROJECT_SOURCE_DIR}/shaders/*.vert"
-		"${PROJECT_SOURCE_DIR}/shaders/*.frag")
+		"${PROJECT_SOURCE_DIR}/shaders/*.frag"
+		"${PROJECT_SOURCE_DIR}/shaders/*.geom")
 		
 add_executable(TestShadowMap ${SRCS})
 

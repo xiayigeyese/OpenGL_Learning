@@ -1,6 +1,11 @@
 #pragma once
 
+#include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/common.hpp>           
+#include <glm/exponential.hpp>        
+#include <glm/geometric.hpp>
 
 class Camera
 {
@@ -28,8 +33,10 @@ public:
 		
 		m_right = normalize(cross(m_front, m_worldUp));
 		m_up = glm::normalize(glm::cross(m_right, m_front));
-		m_yaw = -90.0f;
-		m_pitch = 0.0f;
+
+		glm::vec3 front = glm::normalize(m_front);
+		m_pitch = glm::degrees(glm::asin(front.y));
+		m_yaw = glm::degrees(glm::asin(front.z / (glm::sqrt(1 - front.y * front.y))));
 	}
 
 	static Camera perspectiveCamera(glm::vec3 position, glm::vec3 target, glm::vec3 worldUp, 

@@ -27,7 +27,7 @@ public:
 
 	Framebuffer& operator=(Framebuffer&& framebuffer) noexcept
 	{
-		destory();
+		destroy();
 		m_handler = framebuffer.m_handler;
 		framebuffer.m_handler = 0;
 		return *this;
@@ -35,10 +35,10 @@ public:
 
 	~Framebuffer()
 	{
-		destory();
+		destroy();
 	}
 
-	void destory() 
+	void destroy() 
 	{
 		if (m_handler) {
 			glDeleteFramebuffers(1, &m_handler);
@@ -48,7 +48,7 @@ public:
 
 	void reInitHandler()
 	{
-		destory();
+		destroy();
 		glCreateFramebuffers(1, &m_handler);
 	}
 
@@ -65,10 +65,17 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void attachTexture2D(const GLenum attachment, const Texture2D& texture)
+	void attachTexture2D(const GLenum attachment, const Texture2D& texture) const
 	{
 		assert(m_handler);
 		glNamedFramebufferTexture(m_handler, attachment, texture.getHandler(), 0);
+	}
+
+	// use this api: need to attach a geometry shader that duplicates the primitive for each face
+	void attachCubeMap(const GLenum attachment, const CubeMap& cubeMap) const
+	{
+		assert(m_handler);
+		glNamedFramebufferTexture(m_handler, attachment, cubeMap.getHandler(), 0);
 	}
 
 	void attachRenderBuffer(const GLenum attachment, const Renderbuffer& renderbuffer) const
@@ -89,15 +96,10 @@ public:
 		glNamedFramebufferReadBuffer(m_handler, buffer);
 	}
 
-	bool isComplete() const
+	[[nodiscard]] bool isComplete() const
 	{
 		assert(m_handler);
-		if (glCheckNamedFramebufferStatus(m_handler, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		{
-			std::cout << "error framebuffer is not complete!" << std::endl;
-			return false;
-		}
-		return true;
+		return glCheckNamedFramebufferStatus(m_handler, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 	}
 
 	[[nodiscard]] GLuint getHandler() const

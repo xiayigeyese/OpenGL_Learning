@@ -91,14 +91,16 @@ public:
 	{
 		Shader<ShaderType> shader;
 		shader.initFromSource(source);
-		return std::move(shader);
+		// return std::move(shader);
+		return shader;
 	}
 
 	static Shader<ShaderType> loadFromFile(const std::string& shaderPath)
 	{
 		Shader<ShaderType> shader;
 		shader.initFromFile(shaderPath);
-		return std::move(shader);
+		// return std::move(shader);
+		return shader;
 	}
 
 	GLuint getHandler() const

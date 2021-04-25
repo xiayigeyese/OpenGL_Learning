@@ -1,3 +1,4 @@
+#include <app/app.h>
 #include "test_cubeMap.h"
 
 void testCubeMap1()
@@ -233,10 +234,22 @@ void testCubeMap()
 
 void testSkyBoxPass()
 {
+	
     const int width = 800, height = 600;
-    GLFWwindow* window = initGLFWAndGLAD(width, height);
-    if (window == nullptr) return;
+    Application app("skybox", width, height);
+    GLFWwindow* window = app.getWindow();
+    Input* input = app.getInput();
 
+    Camera camera = Camera::perspectiveCamera(
+        glm::vec3(0, 0, 0),
+        glm::vec3(0, 0, -1),
+        glm::vec3(0,1,0),
+        90.0f,
+        static_cast<float>(width) / height,
+        0.1f,
+        100.0f
+    );
+    CameraController cameraController(camera, *input);
 
     std::array<std::string, 6> filePaths = {
         "resources/textures/skybox/right.jpg",
@@ -250,20 +263,15 @@ void testSkyBoxPass()
     SkyBoxPass skyBoxPass(filePaths);
 
     glEnable(GL_DEPTH_TEST);
-    int theta = 0;
-
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        app.getKeyPressInput();
+        cameraController.processKeyPressInput();
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        theta = theta % 360000;
-        theta++;
-        glm::mat4 view = glm::mat3(glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(sin(theta * 0.001), 0, 3 - cos(theta * 0.001)), glm::vec3(0, 1, 0)));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
-        skyBoxPass.renderPass(view, projection);
-
+        
+        skyBoxPass.renderPass(camera.getViewMatrix(), camera.getProjectionMatrix());
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

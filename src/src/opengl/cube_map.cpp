@@ -24,7 +24,7 @@ void CubeMap::loadFromFiles(const std::array<std::string, 6>& filePaths, const G
 		}
 	}
 	// set data and param
-	setTexFormat(internalFormat, width, height);
+	setTexFormat(1, internalFormat, width, height);
 	setTexImageData(width, height, format, type, data);
 	setTexFilterParameter(GL_LINEAR, GL_LINEAR);
 	setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -35,3 +35,14 @@ void CubeMap::loadFromFiles(const std::array<std::string, 6>& filePaths, const G
 		stbi_image_free(data[i]);
 	}
 }
+
+CubeMap CubeMap::createCubeShadowMap(const int width, const int height, const GLenum internalFormat)
+{
+	CubeMap shadow;
+	shadow.setTexFormat(1, internalFormat, width, height);
+	shadow.setTexImageData(width, height, internalFormat, GL_FLOAT, { nullptr });
+	shadow.setTexFilterParameter(GL_NEAREST, GL_NEAREST);
+	shadow.setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	return shadow;
+}
+

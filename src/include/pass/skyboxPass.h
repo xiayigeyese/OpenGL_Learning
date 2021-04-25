@@ -64,7 +64,7 @@ public:
     {
         glDepthFunc(GL_LEQUAL);
         shader.use();
-        shader.setUniformValue(u_vs_view, view);
+        shader.setUniformValue(u_vs_view, glm::mat4(glm::mat3(view)));
         shader.setUniformValue(u_vs_projection, projection);
         skyboxVao.bind();
         glActiveTexture(GL_TEXTURE0);

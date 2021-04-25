@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <array>
 #include <cassert>
 
 #include <glad/glad.h>
@@ -48,6 +48,12 @@ public:
 		glTextureParameteri(m_handler, paramName, param);
 	}
 
+	void setTexBorderColor(std::array<float, 4> borderColor) const 
+	{
+		assert(m_handler);
+		glTextureParameterfv(m_handler, GL_TEXTURE_BORDER_COLOR, borderColor.data());
+	}
+
 	void setTexFilterParameter(const GLint minFilter, const GLint magFilter) const
 	{
 		assert(m_handler);
@@ -55,10 +61,10 @@ public:
 		glTextureParameteri(m_handler, GL_TEXTURE_MAG_FILTER, magFilter);
 	}
 
-	void setTexFormat(GLenum internalFormat, GLsizei width, GLsizei height) const
+	void setTexFormat(GLint levels, GLenum internalFormat, GLsizei width, GLsizei height) const
 	{
 		assert(m_handler);
-		glTextureStorage2D(m_handler, 1, internalFormat, width, height);
+		glTextureStorage2D(m_handler, levels, internalFormat, width, height);
 	}
 
 	void genTexMipMap() const

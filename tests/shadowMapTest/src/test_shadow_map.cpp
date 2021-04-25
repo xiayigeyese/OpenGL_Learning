@@ -123,16 +123,16 @@ void testDepthMap()
 	initPlaneVAO(planeVAO, planeVBO);
 
 	// set depthMap texture
-	const int depthMapWidth = 1024, depthMapHeight = 1024;
+	const int depthMapWidth = 256, depthMapHeight = 256;
 	Texture2D depthMap;
 	depthMap.loadFromMemory(
 		depthMapWidth,
 		depthMapHeight,
+		1,
 		GL_DEPTH_COMPONENT32,
 		GL_DEPTH_COMPONENT32,
 		GL_FLOAT,
-		nullptr,
-		false);
+		nullptr);
 
 	// set fbo and attach depthMap
 	Framebuffer fbo;
@@ -142,8 +142,8 @@ void testDepthMap()
 	fbo.setColorBufferToRead(GL_NONE);
 
 	// set light
-	glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-	float nearPlane = 1.0f, farPlane = 10.0f;
+	glm::vec3 lightPos(-2.0f, 20, -1.0f);
+	float nearPlane = 1.0f, farPlane = 40;
 	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -174,8 +174,8 @@ void testDepthMap()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// start render depthMap
-		glViewport(0, 0, depthMapWidth, depthMapHeight);
 		fbo.bind();
+		glViewport(0, 0, depthMapWidth, depthMapHeight);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		depthShader.use();
 
@@ -264,25 +264,18 @@ void testShadowMap()
 	initPlaneVAO(planeVAO, planeVBO);
 
 	// set light
-	glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-	float near = 1.0f, far = 7.5f;
+	glm::vec3 lightPos(-2.0f, 8.0f, -1.0f);
+	float near = 1.0f, far = 20.0f;
 	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near, far);
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
 	// shadow map
 	int depthMapWidth = 1024, depthMapHeight = 1024;
-	Texture2D depthMap;
-	depthMap.loadFromMemory(
-		depthMapWidth, 
-		depthMapHeight, 
-		GL_DEPTH_COMPONENT32F, 
-		GL_DEPTH_COMPONENT32F, 
-		GL_FLOAT, 
-		nullptr, 
-		false);
+	Texture2D depthMap = Texture2D::createShadowMap(depthMapWidth, depthMapHeight);
 
-	Framebuffer fbo;
+	// fbo -> attach depthMap to depthBuffer
+    Framebuffer fbo;
 	fbo.attachTexture2D(GL_DEPTH_ATTACHMENT, depthMap);
 	fbo.setColorBufferToDraw(GL_NONE);
 	fbo.setColorBufferToRead(GL_NONE);
@@ -298,7 +291,7 @@ void testShadowMap()
 	
 	// load texture for object
 	Texture2D diffuseMap;
-	diffuseMap.loadFromFile("resources/textures/wood.png");
+	diffuseMap.loadFromFile("resources/textures/wood.png", 8);
 	
 	// load shader
 	ShaderProgram shadowMapShader({
@@ -343,6 +336,7 @@ void testShadowMap()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// render to depthMap
+		glCullFace(GL_FRONT);
 		glViewport(0, 0, depthMapWidth, depthMapHeight);
 		fbo.bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -362,6 +356,7 @@ void testShadowMap()
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		planeVAO.unBind();
 		fbo.unBind();
+		glCullFace(GL_BACK);
 
 		// render with depthMap
 		glViewport(0, 0, width, height);

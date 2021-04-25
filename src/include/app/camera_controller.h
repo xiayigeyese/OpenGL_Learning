@@ -191,24 +191,26 @@ public:
 		if (m_input->getKeyStatus(Input::KEY_W) == Input::KEY_STATUS::PRESS)
 		{
 			m_camera->moveFront(distance);
+			m_camera->updateViewAttribute();
 		}
 		// S: Backward
 		if (m_input->getKeyStatus(Input::KEY_S) == Input::KEY_STATUS::PRESS)
 		{
 			m_camera->moveBackward(distance);
+			m_camera->updateViewAttribute();
 		}
 		// A: Left
 		if (m_input->getKeyStatus(Input::KEY_A) == Input::KEY_STATUS::PRESS)
 		{
 			m_camera->moveLeft(distance);
+			m_camera->updateViewAttribute();
 		}
 		// B: Right
 		if (m_input->getKeyStatus(Input::KEY_D) == Input::KEY_STATUS::PRESS)
 		{
 			m_camera->moveRight(distance);
+			m_camera->updateViewAttribute();
 		}
-		
-		m_camera->updateViewAttribute();
 	}
 	
 private:

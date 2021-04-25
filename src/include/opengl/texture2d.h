@@ -69,11 +69,14 @@ public:
    
 	void loadFromMemory(const GLsizei width,
 		const GLsizei height,
+		const GLsizei levels,
 		const GLenum internalFormat,
 		const GLenum format,
 		const GLenum type,
-		const void* data,
-		bool genMipMap = true) const;
+		const void* data
+	) const;
 
-	void loadFromFile(const std::string& filePath, bool genMipMap = true) const;
+	void loadFromFile(const std::string& filePath, unsigned int mipmapLevels = 1) const;
+
+	static Texture2D createShadowMap(const int width, const int height, GLenum internalFormat = GL_DEPTH_COMPONENT32F);
 };
