@@ -5,6 +5,15 @@
 
 #include "test_shadow_map_pointLight.h"
 
+CubeMap createCubeShadowMap(const int width, const int height, const GLenum internalFormat)
+{
+	CubeMap shadow;
+	shadow.setTexFormat(1, internalFormat, width, height);
+	shadow.setTexFilterParameter(GL_NEAREST, GL_NEAREST);
+	shadow.setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	return shadow;
+}
+
 void initCube(VertexArray& vao, VertexBuffer<CubeVertex>& vbo)
 {
 	std::array<CubeVertex, 36> cubeVertices =
@@ -90,7 +99,7 @@ void testShadowMapPointLight()
 
 	// shadow map
 	const int shadowMapWidth = 1024, shadowMapHeight = 1024;
-	CubeMap cubeShadowMap = CubeMap::createCubeShadowMap(shadowMapWidth, shadowMapHeight);
+	CubeMap cubeShadowMap = createCubeShadowMap(shadowMapWidth, shadowMapHeight, GL_DEPTH_COMPONENT32F);
 
 	// fbo -> attach depth buffer
 	Framebuffer fbo;
@@ -118,6 +127,7 @@ void testShadowMapPointLight()
 		lightSpaceProjection * glm::lookAt(lightPos, lightPos + glm::vec3( 0, 0,-1), glm::vec3(0, 1,  0)),
 	};*/
 
+    // *-- up vector
 	std::array<glm::mat4, 6> shadowTransforms =
 	{
 		lightSpaceProjection * glm::lookAt(lightPos, lightPos + glm::vec3(1.0,  0.0,  0.0), glm::vec3(0.0, -1.0,  0.0)),
@@ -208,7 +218,7 @@ void testShadowMapPointLight()
 		glEnable(GL_CULL_FACE);
 		// cube
 		glCullFace(GL_FRONT);
-		for(int i                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               =1;i<6;i++)
+		for(int i = 1; i < 6; i++) 
 		{
 			shadowShader.setUniformValue(shaderMap_vs_model, models[i]);
 			glDrawArrays(GL_TRIANGLES, 0, 36);

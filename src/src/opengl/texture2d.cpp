@@ -43,22 +43,3 @@ void Texture2D::loadFromFile(const std::string& filePath, unsigned int mipmapLev
 	stbi_image_free(data);
 }
 
-
-Texture2D Texture2D::createShadowMap(const int width, const int height, const GLenum internalFormat)
-{
-	Texture2D shadow;
-	shadow.setTexFormat(1, internalFormat, width, height);
-	shadow.setTexImageData(width, height, internalFormat, GL_FLOAT, nullptr);
-	shadow.setTexFilterParameter(GL_NEAREST, GL_NEAREST);
-	shadow.setTexWrapParameter(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
-	shadow.setTexBorderColor(
-		std::array<float, 4>{
-			std::numeric_limits<float>::max(), 
-			std::numeric_limits<float>::max(),
-			std::numeric_limits<float>::max(),
-			1
-		}
-	);
-	return shadow;
-}
-

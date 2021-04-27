@@ -11,6 +11,8 @@ struct CubeVertex
 	glm::vec2 uvCoords;
 };
 
+CubeMap createCubeShadowMap(const int width, const int height, const GLenum internalFormat);
+
 void initCubeVAO(VertexArray&, VertexBuffer<CubeVertex>&);
 
 void testShadowMapPointLight();

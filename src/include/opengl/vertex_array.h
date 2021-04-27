@@ -34,7 +34,7 @@ public:
 	                      const size_t vertex_offsets) const;
 
 	void bindVertexArrayAttrib(const GLuint bindingIndex, const VertexAttrib& vertexAttrib,
-	                           const bool normalized) const;
+	                           const bool normalized = GL_FALSE) const;
 
 	void enableVertexAtrrib(const VertexAttrib& vertexAttrib) const;
 

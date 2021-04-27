@@ -7,6 +7,23 @@
 
 #include "test_shadow_map.h"
 
+Texture2D createShadowMap(const int width, const int height, const GLenum internalFormat)
+{
+	Texture2D shadow;
+	shadow.setTexFormat(1, internalFormat, width, height);
+	shadow.setTexFilterParameter(GL_NEAREST, GL_NEAREST);
+	shadow.setTexWrapParameter(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+	shadow.setTexBorderColor(
+		std::array<float, 4>{
+		std::numeric_limits<float>::max(),
+			std::numeric_limits<float>::max(),
+			std::numeric_limits<float>::max(),
+			1
+	}
+	);
+	return shadow;
+}
+
 void initBackVAO(VertexArray& backVAO, VertexBuffer<BackVertex>& vbo)
 {
 	std::array<BackVertex, 4> backVertices =
@@ -125,15 +142,8 @@ void testDepthMap()
 	// set depthMap texture
 	const int depthMapWidth = 256, depthMapHeight = 256;
 	Texture2D depthMap;
-	depthMap.loadFromMemory(
-		depthMapWidth,
-		depthMapHeight,
-		1,
-		GL_DEPTH_COMPONENT32,
-		GL_DEPTH_COMPONENT32,
-		GL_FLOAT,
-		nullptr);
-
+	depthMap.setTexFormat(1, GL_DEPTH_COMPONENT32F, depthMapWidth, depthMapHeight);
+	
 	// set fbo and attach depthMap
 	Framebuffer fbo;
 	fbo.attachTexture2D(GL_DEPTH_ATTACHMENT, depthMap);
@@ -272,7 +282,7 @@ void testShadowMap()
 
 	// shadow map
 	int depthMapWidth = 1024, depthMapHeight = 1024;
-	Texture2D depthMap = Texture2D::createShadowMap(depthMapWidth, depthMapHeight);
+	Texture2D depthMap = createShadowMap(depthMapWidth, depthMapHeight, GL_DEPTH_COMPONENT32F);
 
 	// fbo -> attach depthMap to depthBuffer
     Framebuffer fbo;

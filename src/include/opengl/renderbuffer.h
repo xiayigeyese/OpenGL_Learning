@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 #include <cassert>
 #include <glad/glad.h>
 
@@ -50,18 +52,6 @@ public:
 	{
 		assert(m_handler);
 		glNamedRenderbufferStorage(m_handler, format, width, height);
-	}
-
-	void bind() const 
-	{
-		assert(m_handler);
-		glBindFramebuffer(GL_RENDERBUFFER, m_handler);
-	}
-
-	void unBind() const 
-	{
-		assert(m_handler);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 	[[nodiscard]] GLuint getHandler() const 

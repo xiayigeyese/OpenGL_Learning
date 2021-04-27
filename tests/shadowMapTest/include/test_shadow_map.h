@@ -19,6 +19,8 @@ struct CubeVertex
 
 using PlaneVertex = CubeVertex;
 
+Texture2D createShadowMap(const int width, const int height, const GLenum internalFormat);
+
 void initBackVAO(VertexArray& backVAO, VertexBuffer<BackVertex>& vbo);
 
 void initCubeVAO(VertexArray& cubeVAO, VertexBuffer<CubeVertex>& vbo);

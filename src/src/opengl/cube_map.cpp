@@ -36,13 +36,4 @@ void CubeMap::loadFromFiles(const std::array<std::string, 6>& filePaths, const G
 	}
 }
 
-CubeMap CubeMap::createCubeShadowMap(const int width, const int height, const GLenum internalFormat)
-{
-	CubeMap shadow;
-	shadow.setTexFormat(1, internalFormat, width, height);
-	shadow.setTexImageData(width, height, internalFormat, GL_FLOAT, { nullptr });
-	shadow.setTexFilterParameter(GL_NEAREST, GL_NEAREST);
-	shadow.setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	return shadow;
-}
 

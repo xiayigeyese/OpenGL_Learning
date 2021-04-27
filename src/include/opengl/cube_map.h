@@ -68,6 +68,4 @@ public:
 		const GLenum internalFormat,
 		const GLenum format,
 		const GLenum type) const;
-
-	static CubeMap createCubeShadowMap(const int width, const int height, const GLenum internalFormat = GL_DEPTH_COMPONENT32F);
 };

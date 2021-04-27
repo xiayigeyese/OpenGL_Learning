@@ -77,6 +77,4 @@ public:
 	) const;
 
 	void loadFromFile(const std::string& filePath, unsigned int mipmapLevels = 1) const;
-
-	static Texture2D createShadowMap(const int width, const int height, GLenum internalFormat = GL_DEPTH_COMPONENT32F);
 };
