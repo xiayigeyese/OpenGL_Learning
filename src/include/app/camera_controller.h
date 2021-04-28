@@ -64,9 +64,9 @@ public:
 	}
 
 	// use for normal
-	explicit CameraController(Camera& camera, Input& input)
-		: m_camera(&camera),
-		  m_input(&input),
+	explicit CameraController(Camera* camera, Input* input)
+		: m_camera(camera),
+		  m_input(input),
 		  m_moveSpeed(2.0),
 		  m_mouseSensitivity(0.1),
 		  m_wheelScrollKeyId(0),
@@ -92,36 +92,6 @@ public:
 	void setMouseSensitivity(const double mouseSensitivity)
 	{
 		m_mouseSensitivity = mouseSensitivity;
-	}
-	
-	void keyBoardMove(const MoveDirection direction, const double duringTime) const
-	{
-		float distance = static_cast<float>(m_moveSpeed * duringTime);
-		if (direction == MoveDirection::FORWARD)
-		{
-			m_camera->moveFront(distance);
-		}
-		else if (direction == MoveDirection::BACKWARD)
-		{
-			m_camera->moveBackward(distance);
-		}
-		else if (direction == MoveDirection::LEFT)
-		{
-			m_camera->moveLeft(distance);
-		}
-		else if (direction == MoveDirection::RIGHT)
-		{
-			m_camera->moveRight(distance);
-		}
-		else if (direction == MoveDirection::UP)
-		{
-			m_camera->moveUp(distance);
-		}
-		else
-		{
-			m_camera->moveDown(distance);
-		}
-		m_camera->updateViewAttribute();
 	}
 	
 	void mouseMove(const double xOffset, const double yOffset) const
@@ -182,7 +152,7 @@ public:
 		}
 	}
 
-	// key press int
+	// key press input
 
 	void processKeyPressInput() const
 	{
@@ -205,7 +175,7 @@ public:
 			m_camera->moveLeft(distance);
 			m_camera->updateViewAttribute();
 		}
-		// B: Right
+		// D: Right
 		if (m_input->getKeyStatus(Input::KEY_D) == Input::KEY_STATUS::PRESS)
 		{
 			m_camera->moveRight(distance);

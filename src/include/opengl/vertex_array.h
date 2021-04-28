@@ -44,7 +44,7 @@ public:
 
 	void bind() const;
 
-	void unBind() const;
+	void unbind() const;
 
 	unsigned int getHandler() const;
 
@@ -139,7 +139,7 @@ inline void VertexArray::bind() const
 	glBindVertexArray(m_handler);
 }
 
-inline void VertexArray::unBind() const
+inline void VertexArray::unbind() const
 {
 	assert(m_handler);
 	glBindVertexArray(0);

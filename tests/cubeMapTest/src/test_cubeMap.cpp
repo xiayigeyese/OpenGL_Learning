@@ -99,7 +99,7 @@ void testCubeMap1()
         glActiveTexture(GL_TEXTURE0);
         cubeTexture.bindTexUnit(0);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        vao.unBind();
+        vao.unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -218,7 +218,7 @@ void testCubeMap()
         glActiveTexture(GL_TEXTURE0);
         cubeMap.bindTexUnit(0);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        skyboxVao.unBind();
+        skyboxVao.unbind();
         glDepthFunc(GL_LESS);
 
         glfwSwapBuffers(window);
@@ -249,7 +249,7 @@ void testSkyBoxPass()
         0.1f,
         100.0f
     );
-    CameraController cameraController(camera, *input);
+    CameraController cameraController(&camera, input);
 
     std::array<std::string, 6> filePaths = {
         "resources/textures/skybox/right.jpg",

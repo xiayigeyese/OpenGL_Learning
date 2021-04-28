@@ -99,7 +99,7 @@ void test_hdr()
 		0.1f,
 		100.0f
 	);
-	CameraController cameraController(camera, *input);
+	CameraController cameraController(&camera, input);
 
 	// set hdr fbo
 	Framebuffer hdrFbo;
@@ -189,9 +189,9 @@ void test_hdr()
 		diffuseMap.bindTexUnit(0);
 		cubeVAO.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 		hdrFboShader.unUse();
-		hdrFbo.unBind();
+		hdrFbo.unbind();
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -200,7 +200,7 @@ void test_hdr()
 		colorBuffer.bindTexUnit(0);
 		quadVAO.bind();
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		quadVAO.unBind();
+		quadVAO.unbind();
 		hdrMappintShader.unUse();
 		
 		glfwSwapBuffers(window);

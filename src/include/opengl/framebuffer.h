@@ -59,7 +59,7 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, m_handler);
 	}
 
-	void unBind() 
+	void unbind() 
 	{
 		assert(m_handler);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -88,6 +88,12 @@ public:
 	{
 		assert(m_handler);
 		glNamedFramebufferDrawBuffer(m_handler, buffer);
+	}
+
+	void setColorBuffersToDraw(int n, GLenum* buffer) const
+	{
+		assert(m_handler);
+		glNamedFramebufferDrawBuffers(m_handler, n, buffer);
 	}
 
 	void setColorBufferToRead(GLenum buffer) const

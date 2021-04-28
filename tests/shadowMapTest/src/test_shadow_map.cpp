@@ -196,7 +196,7 @@ void testDepthMap()
 		depthShader.setUniformValue(depth_vs_model, model1);
 		cubeVAO.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 
 		// cube2
 		glm::mat4 model2 = glm::mat4(1.0);
@@ -205,7 +205,7 @@ void testDepthMap()
 		depthShader.setUniformValue(depth_vs_model, model2);
 		cubeVAO.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 
 		// cube3
 		glm::mat4 model3 = glm::mat4(1.0f);
@@ -215,17 +215,17 @@ void testDepthMap()
 		depthShader.setUniformValue(depth_vs_model, model3);
 		cubeVAO.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 
 		// plane
 		glm::mat4 model = glm::mat4(1.0f);
 		depthShader.setUniformValue(depth_vs_model, model);
 		planeVAO.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		planeVAO.unBind();
+		planeVAO.unbind();
 
 		// end render depthMap
-		fbo.unBind();
+		fbo.unbind();
 
 		// render 
 		glViewport(0, 0, width, height);
@@ -236,7 +236,7 @@ void testDepthMap()
 		glActiveTexture(GL_TEXTURE0);
 		depthMap.bindTexUnit(0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		backVAO.unBind();
+		backVAO.unbind();
 		displayDepthShader.unUse();
 
 		glfwSwapBuffers(window);
@@ -264,7 +264,7 @@ void testShadowMap()
 		static_cast<float>(width) / height,
 		0.1f, 
 		100.0f);
-	CameraController cameraController(camera, *input);
+	CameraController cameraController(&camera, input);
 
 	// set data
 	VertexArray cubeVAO, planeVAO;
@@ -359,13 +359,13 @@ void testShadowMap()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		depthShader.setUniformValue(depthMap_vs_model, model3);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 		// plane
 		planeVAO.bind();
 		depthShader.setUniformValue(depthMap_vs_model, model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		planeVAO.unBind();
-		fbo.unBind();
+		planeVAO.unbind();
+		fbo.unbind();
 		glCullFace(GL_BACK);
 
 		// render with depthMap
@@ -389,12 +389,12 @@ void testShadowMap()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		shadowMapShader.setUniformValue(u_vs_model, model3);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 		// plane
 		planeVAO.bind();
 		shadowMapShader.setUniformValue(u_vs_model, model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		planeVAO.unBind();
+		planeVAO.unbind();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

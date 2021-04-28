@@ -90,7 +90,7 @@ void testShadowMapPointLight()
 		static_cast<float>(width) / height,
 		0.1f,
 		100.0f);
-	CameraController cameraController(camera, *input);
+	CameraController cameraController(&camera, input);
 
 	// set cube data
 	VertexArray cubeVAO;
@@ -224,9 +224,9 @@ void testShadowMapPointLight()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		glCullFace(GL_BACK);
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 		shadowShader.unUse();
-		fbo.unBind();
+		fbo.unbind();
 
 		// render scene with shadowMap
 		glViewport(0, 0, width, height);
@@ -253,7 +253,7 @@ void testShadowMapPointLight()
 			worldShader.setUniformValue(ws_vs_model, models[i]);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		cubeVAO.unBind();
+		cubeVAO.unbind();
 		worldShader.unUse();
 		
 		glfwSwapBuffers(window);

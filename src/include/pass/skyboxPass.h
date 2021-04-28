@@ -70,7 +70,7 @@ public:
         glActiveTexture(GL_TEXTURE0);
         cubeMap.bindTexUnit(0);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        skyboxVao.unBind();
+        skyboxVao.unbind();
         shader.unUse();
         glDepthFunc(GL_LESS);
     }
