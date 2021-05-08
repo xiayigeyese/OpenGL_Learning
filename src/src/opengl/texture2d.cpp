@@ -4,13 +4,13 @@
 #include <stb_image.h>
 #include <opengl/texture2d.h>
 
-void Texture2D::loadFromMemory(const GLsizei width, const GLsizei height, const GLsizei levels, const GLenum internalFormat, const GLenum format, const GLenum type, const void* data) const
+void Texture2D::loadFromMemory(const GLsizei width, const GLsizei height, const GLsizei mipmapLevels, const GLenum internalFormat, const GLenum format, const GLenum type, const void* data) const
 {
 	assert(m_handler);
-	setTexFormat(levels, internalFormat, width, height);
+	setTexFormat(mipmapLevels, internalFormat, width, height);
 	setTexImageData(width, height, format, type, data);
-	initialParameters(levels > 1);
-	if (levels > 1) genTexMipMap();
+	initialParameters(mipmapLevels > 1);
+	if (mipmapLevels > 1) genTexMipMap();
 }
 
 void Texture2D::loadFromFile(const std::string& filePath, unsigned int mipmapLevels) const

@@ -61,10 +61,10 @@ public:
 		glTextureParameteri(m_handler, GL_TEXTURE_MAG_FILTER, magFilter);
 	}
 
-	void setTexFormat(GLint levels, GLenum internalFormat, GLsizei width, GLsizei height) const
+	void setTexFormat(GLint mipMapLevels, GLenum internalFormat, GLsizei width, GLsizei height) const
 	{
 		assert(m_handler);
-		glTextureStorage2D(m_handler, levels, internalFormat, width, height);
+		glTextureStorage2D(m_handler, mipMapLevels, internalFormat, width, height);
 	}
 
 	void genTexMipMap() const
