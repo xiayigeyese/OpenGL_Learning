@@ -48,10 +48,10 @@ public:
 		glTextureParameteri(m_handler, paramName, param);
 	}
 
-	void setTexBorderColor(std::array<float, 4> borderColor) const 
+	void setTexBorderColor(GLfloat* data) const
 	{
 		assert(m_handler);
-		glTextureParameterfv(m_handler, GL_TEXTURE_BORDER_COLOR, borderColor.data());
+		glTextureParameterfv(m_handler, GL_TEXTURE_BORDER_COLOR, data);
 	}
 
 	void setTexFilterParameter(const GLint minFilter, const GLint magFilter) const

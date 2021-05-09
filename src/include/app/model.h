@@ -9,29 +9,39 @@
 class Model
 {
 public:
-	explicit Model(const std::string& path, MATERIAL_SET materialSet, std::vector<unsigned> texUnits)
+	explicit Model(const std::string& path, MATERIAL_SET materialSet, unsigned assimpPostProcess = aiProcess_Triangulate)
 	{
-		loadModel(path, materialSet, texUnits);
+		loadModel(path, materialSet, assimpPostProcess);
 	}
 
-	void draw(const ShaderProgram& shader) 
+	void draw(const ShaderProgram& shader, std::vector<unsigned int> texUnits)
 	{
 		for(auto& mesh: m_meshes)
 		{
-			mesh.draw(shader);
+			mesh.draw(shader, texUnits);
 		}
 	}
 
-	void loadMaterials(MATERIAL_SET materialSet, std::vector<unsigned int> texUnit);
+	bool isTexUnitMatching(const std::vector<unsigned int>& texUnits)
+	{
+		for (auto& mesh : m_meshes)
+		{
+			if (!mesh.isTexUnitMatching(texUnits)) return false;
+		}
+		return true;
+	}
 
 private:
-	void loadModel(const std::string& path, MATERIAL_SET materialSet, std::vector<unsigned> texUnits);
+	void loadModel(const std::string& path, MATERIAL_SET materialSet, unsigned assimpPostProcess = aiProcess_Triangulate);
 	
 	void processNode(aiNode* node);
 
 	Mesh processMesh(aiMesh* mesh);
+
+	void loadMaterials(MATERIAL_SET materialSet);
 	
 	Material loadMaterial(aiMaterial* material, aiTextureType type, TEXTURE_TYPE textureType);
+
 
 private:
 	std::vector<Mesh> m_meshes;
@@ -40,6 +50,4 @@ private:
 
 	aiScene* m_aiScene;
 	std::vector<aiMesh*> m_aiMeshes;
-	
-	MATERIAL_SET m_materialSet;
 };

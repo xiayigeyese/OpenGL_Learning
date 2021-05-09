@@ -35,11 +35,19 @@ void test_loadModel()
 	// shader: set uniform
 	UniformVariable<glm::mat4> s_vs_mvp = shader.getUniformVariable<glm::mat4>("mvp");
 	shader.setUniformValue("diffuseMap", 0);
+	vector<unsigned int> s_texUnits = { 0 };
 
 	// load model
 	// string modelPath = "resources/objects/nanosuit/nanosuit.obj";
+	// Model model(modelPath, MATERIAL_SET::D, aiProcess_Triangulate | aiProcess_FlipUVs);                     
 	string modelPath = "resources/objects/backpack/backpack.obj";
-	Model model(modelPath, MATERIAL_SET::D, { 0 });
+	Model model(modelPath, MATERIAL_SET::D, aiProcess_Triangulate);
+	if(!model.isTexUnitMatching(s_texUnits))
+	{
+		std::cout << "material in model is not matching the texUnit used in shader" << endl;
+		glfwTerminate();
+		return;
+	}
 	
 	// openGL config
 	glEnable(GL_DEPTH_TEST);
@@ -55,7 +63,7 @@ void test_loadModel()
 
 		shader.use();
 		shader.setUniformValue(s_vs_mvp, camera.getProjectionMatrix() * camera.getViewMatrix());
-		model.draw(shader);
+		model.draw(shader, s_texUnits);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

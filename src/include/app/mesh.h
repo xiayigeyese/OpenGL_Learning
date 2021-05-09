@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <opengl/opengl.h>
 
-struct Vertex
+struct MeshVertex
 {
 	glm::vec3 position;
 	glm::vec3 normal;
@@ -51,29 +51,33 @@ enum class MATERIAL_SET
 class Mesh
 {
 public:
-	explicit Mesh(const std::vector<Vertex> vertices, const std::vector<unsigned int> indices)
+	explicit Mesh(const std::vector<MeshVertex> vertices, const std::vector<unsigned int> indices)
 		:m_vertices(vertices), m_indices(indices)
 	{
 		initVAO();
 	}
 	
 
-	void setMaterials(std::vector<Material> materials, std::vector<unsigned int> texUnits)
+	void setMaterials(std::vector<Material> materials)
 	{
 		m_materials = materials;
-		m_texUnits = texUnits;
 	}
 
-	void draw(const ShaderProgram& shader)
+	void draw(const ShaderProgram& shader, std::vector<unsigned int> texUnits = {})
 	{
 		for(unsigned int i=0;i<m_materials.size();i++)
 		{
-			glActiveTexture(GL_TEXTURE0 + m_texUnits[i]);
-			m_materials[0].texture->bindTexUnit(m_texUnits[i]);
+			glActiveTexture(GL_TEXTURE0 + texUnits[i]);
+			m_materials[0].texture->bindTexUnit(texUnits[i]);
 		}	
 		m_vao.bind();
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
 		m_vao.unbind();
+	}
+
+	[[nodiscard]] bool isTexUnitMatching(const std::vector<unsigned int>& texUnits) const
+	{
+		return m_materials.size() == texUnits.size();
 	}
 
 
@@ -82,9 +86,9 @@ private:
 	{
 		// vao bind vbo
 		m_vbo.setData(m_vertices.data(), m_vertices.size());
-		VertexAttrib positionAttrib = { 0, 3, GL_FLOAT, offsetof(Vertex, position) };
-		VertexAttrib normalAttrib = { 1, 3, GL_FLOAT, offsetof(Vertex, normal) };
-		VertexAttrib texCoordsAttrib = { 2, 2, GL_FLOAT, offsetof(Vertex, texCoords) };
+		VertexAttrib positionAttrib = { 0, 3, GL_FLOAT, offsetof(MeshVertex, position) };
+		VertexAttrib normalAttrib = { 1, 3, GL_FLOAT, offsetof(MeshVertex, normal) };
+		VertexAttrib texCoordsAttrib = { 2, 2, GL_FLOAT, offsetof(MeshVertex, texCoords) };
 		unsigned int bindingIndex = 0;
 		m_vao.bindVertexBuffer(bindingIndex, m_vbo, 0);
 		m_vao.bindVertexArrayAttrib(bindingIndex, positionAttrib);
@@ -97,11 +101,10 @@ private:
 
 private:
 	VertexArray m_vao;
-	VertexBuffer<Vertex> m_vbo;
+	VertexBuffer<MeshVertex> m_vbo;
 	Buffer m_ebo;
 	
-	std::vector<Vertex> m_vertices;
+	std::vector<MeshVertex> m_vertices;
 	std::vector<unsigned int> m_indices;
 	std::vector<Material> m_materials;
-	std::vector<unsigned int> m_texUnits;
 };

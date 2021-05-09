@@ -1,10 +1,10 @@
 #include <app/model.h>
 
-void Model::loadModel(const std::string& path, MATERIAL_SET materialSet, std::vector<unsigned> texUnits)
+void Model::loadModel(const std::string& path, MATERIAL_SET materialSet, unsigned assimpPostProcess)
 {
 	// the data not in memory when beyond this function scope
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(path, assimpPostProcess);
 	if (scene == nullptr || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || scene->mRootNode == nullptr)
 	{
 		throw std::runtime_error(importer.GetErrorString());
@@ -12,7 +12,7 @@ void Model::loadModel(const std::string& path, MATERIAL_SET materialSet, std::ve
 	m_aiScene = const_cast<aiScene*>(scene);
 	m_directory = path.substr(0, path.find_last_of('/'));
 	processNode(scene->mRootNode);
-	loadMaterials(materialSet, texUnits);
+	loadMaterials(materialSet);
 }
 
 void Model::processNode(aiNode* node)
@@ -32,7 +32,7 @@ void Model::processNode(aiNode* node)
 
 Mesh Model::processMesh(aiMesh* mesh)
 {
-	std::vector<Vertex> vertices;
+	std::vector<MeshVertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Material> materials;
 	// vertex
@@ -53,49 +53,36 @@ Mesh Model::processMesh(aiMesh* mesh)
 			indices.push_back(face.mIndices[j]);
 		}
 	}
-	std::cout << mesh->mMaterialIndex << std::endl;
 	return Mesh(vertices, indices);
 }
 
-void Model::loadMaterials(MATERIAL_SET materialSet, std::vector<unsigned> texUnits)
+void Model::loadMaterials(MATERIAL_SET materialSet)
 {
 	for (unsigned int i = 0; i < m_aiMeshes.size(); i++)
 	{
 		aiMaterial* material = m_aiScene->mMaterials[m_aiMeshes[i]->mMaterialIndex];
 		if (materialSet == MATERIAL_SET::NONE)
 		{
-			m_meshes[i].setMaterials({}, {});
+			m_meshes[i].setMaterials({});
 		}
 		else if (materialSet == MATERIAL_SET::D)
 		{
-			if (texUnits.size() != 1)
-			{
-				std::cout << "warning: materialSet is not match texUnits  --MATERIAL_SET::D"<< std::endl;
-			}
 			Material diffuseMap = loadMaterial(material, aiTextureType_DIFFUSE, TEXTURE_TYPE::DIFFUSE);
-			m_meshes[i].setMaterials({ diffuseMap }, texUnits);
+			m_meshes[i].setMaterials({ diffuseMap });
 		}
 		else if (materialSet == MATERIAL_SET::D_S)
 		{
-			if (texUnits.size() != 2)
-			{
-				std::cout << "warning: materialSet is not match texUnits  --MATERIAL_SET::D_S" << std::endl;
-			}
 			Material diffuseMap = loadMaterial(material, aiTextureType_DIFFUSE, TEXTURE_TYPE::DIFFUSE);
 			Material specularMap = loadMaterial(material, aiTextureType_SPECULAR, TEXTURE_TYPE::SPECULAR);
-			m_meshes[i].setMaterials({ diffuseMap, specularMap }, texUnits);
+			m_meshes[i].setMaterials({ diffuseMap, specularMap });
 		}
 		else if (materialSet == MATERIAL_SET::D_S_N_H)
 		{
-			if (texUnits.size() != 2)
-			{
-				std::cout << "warning: materialSet is not match texUnits  --MATERIAL_SET::D_S_N_H" << std::endl;
-			}
 			Material diffuseMap = loadMaterial(material, aiTextureType_DIFFUSE, TEXTURE_TYPE::DIFFUSE);
 			Material specularMap = loadMaterial(material, aiTextureType_SPECULAR, TEXTURE_TYPE::SPECULAR);
 			Material normalMap = loadMaterial(material, aiTextureType_NORMALS, TEXTURE_TYPE::NORMAL);
 			Material heightMap = loadMaterial(material, aiTextureType_HEIGHT, TEXTURE_TYPE::NORMAL);
-			m_meshes[i].setMaterials({ diffuseMap, specularMap, normalMap, heightMap }, texUnits);
+			m_meshes[i].setMaterials({ diffuseMap, specularMap, normalMap, heightMap });
 		}
 	}
 }
