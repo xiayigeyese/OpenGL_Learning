@@ -300,7 +300,7 @@ void test_ssao()
 
 		// ssao pass
 		ssaoFBO.bind();
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ssaoShader.use();
 		ssaoShader.setUniformValue(ssaoShader_fs_projection, camera.getProjectionMatrix());
 		glActiveTexture(0);
@@ -317,7 +317,7 @@ void test_ssao()
 
 		// blur pass
 		blurFBO.bind();
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		blurShader.use();
 		glActiveTexture(0);
 		ssaoMap.bindTexUnit(0);
@@ -328,7 +328,7 @@ void test_ssao()
 		blurFBO.unbind();
 
 		// lighting pass
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		lightingShader.use();
 		glActiveTexture(0);
 		gPositionMap.bindTexUnit(0);

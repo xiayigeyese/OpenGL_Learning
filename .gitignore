@@ -1,3 +1,3 @@
 # ignores following folders
-bin/
+/bin/
 build/
