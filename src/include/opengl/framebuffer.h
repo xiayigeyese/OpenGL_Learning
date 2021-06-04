@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <iostream>
 #include <glad/glad.h>
 
 #include "texture2d.h"
@@ -76,6 +75,12 @@ public:
 	{
 		assert(m_handler);
 		glNamedFramebufferTexture(m_handler, attachment, cubeMap.getHandler(), 0);
+	}
+	// use this api: need to attach and draw for each face for cubeMap
+	void attachCubeMapFace(const GLenum attachment, const CubeMap& cubeMap, unsigned int layer, unsigned int face) const
+	{
+		assert(m_handler);
+		glNamedFramebufferTextureLayer(m_handler, attachment, cubeMap.getHandler(), layer, face);
 	}
 
 	void attachRenderBuffer(const GLenum attachment, const Renderbuffer& renderbuffer) const

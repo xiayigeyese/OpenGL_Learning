@@ -77,4 +77,9 @@ public:
 	) const;
 
 	void loadFromFile(const std::string& filePath, unsigned int mipmapLevels = 1) const;
+
+private:
+	void loadHDRFile(const std::string& filePath, unsigned int mipmapLevels) const;
+
+	void loadCommonFile(const std::string& filePath, unsigned int mipmapLevels) const;
 };

@@ -1,13 +1,16 @@
 project(tests)
 
-add_subdirectory(cubeMapTest)
+add_subdirectory(cubeMap)
 
-add_subdirectory(shadowMapTest)
+add_subdirectory(shadowMap)
 
-add_subdirectory(hdr_bloomTest)
+add_subdirectory(hdr_bloom)
 
-add_subdirectory(deferredShaderTest)
-
-add_subdirectory(ssaoTest)
+add_subdirectory(deferredShader)
 
 add_subdirectory(csLearn)
+
+add_subdirectory(ssao)
+
+add_subdirectory(pbr)
+
