@@ -6,3 +6,4 @@
 #include "input.h"
 
 #include "model.h"
+#include "geometry.h"

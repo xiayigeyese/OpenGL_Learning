@@ -1,6 +1,5 @@
 #pragma once
-
-#include <vector>
+#include <memory>
 #include <opengl/opengl.h>
 
 class SkyBoxPass
@@ -11,23 +10,26 @@ class SkyBoxPass
 	};
 public:
 	SkyBoxPass()
-		:skyboxVao(VertexArray()),
-		 shader(ShaderProgram()),
-		 cubeMap(CubeMap())
-	{ 
+		:m_skyBoxVao(VertexArray()),
+	     m_vbo(VertexBuffer<SkyBoxVertex>()),
+		 m_shader(ShaderProgram())
+	{
+		
 	}
 
-	explicit SkyBoxPass(std::array<std::string, 6>& filePaths): SkyBoxPass()
+	explicit SkyBoxPass(const std::shared_ptr<CubeMap>& cubeMapPtr, bool isHDR = false): SkyBoxPass()
 	{
-        initSkyBox(filePaths);
+		initSkyBox(cubeMapPtr, isHDR);
 	}
+	
 
     SkyBoxPass(const SkyBoxPass& skyBoxPass) = delete;
 
 	SkyBoxPass(SkyBoxPass&& skyBoxPass) noexcept
-        :skyboxVao(std::move(skyBoxPass.skyboxVao)),
-		 shader(std::move(skyBoxPass.shader)),
-	     cubeMap(std::move(skyBoxPass.cubeMap)),
+        :m_skyBoxVao(std::move(skyBoxPass.m_skyBoxVao)),
+		 m_vbo(std::move(skyBoxPass.m_vbo)),
+		 m_shader(std::move(skyBoxPass.m_shader)),
+	     m_cubeMapPtr(std::move(skyBoxPass.m_cubeMapPtr)),
 	     u_vs_view(skyBoxPass.u_vs_view),
 		 u_vs_projection(skyBoxPass.u_vs_projection)
 	{
@@ -37,9 +39,10 @@ public:
 	
     SkyBoxPass& operator=(SkyBoxPass&& skyBoxPass) noexcept
     {
-        skyboxVao.operator=(std::move(skyBoxPass.skyboxVao));
-        shader.operator=(std::move(skyBoxPass.shader));
-        cubeMap.operator=(std::move(skyBoxPass.cubeMap));
+        m_skyBoxVao.operator=(std::move(skyBoxPass.m_skyBoxVao));
+		m_vbo.operator=(std::move(skyBoxPass.m_vbo));
+        m_shader.operator=(std::move(skyBoxPass.m_shader));
+        m_cubeMapPtr = skyBoxPass.m_cubeMapPtr;
         u_vs_view = skyBoxPass.u_vs_view;
         u_vs_projection = skyBoxPass.u_vs_projection;
         return *this;
@@ -47,36 +50,32 @@ public:
 
 	~SkyBoxPass()
     {
-        skyboxVao.destroy();
-        shader.destroy();
-        cubeMap.destroy();
+        m_skyBoxVao.destroy();
+        m_shader.destroy();
     }
 	
-	void resetSkyBox(std::array<std::string, 6>& filePaths)
+	void resetSkyBox(const std::shared_ptr<CubeMap>& cubeMapPtr)
     {
-        cubeMap.destroy();
-        cubeMap.reInitHandler();
-        cubeMap.loadFromFiles(filePaths, GL_RGB8, GL_RGB,
-            GL_UNSIGNED_BYTE);
+		m_cubeMapPtr = cubeMapPtr;
     }
 
 	void renderPass(const glm::mat4& view, const glm::mat4& projection)
     {
         glDepthFunc(GL_LEQUAL);
-        shader.use();
-        shader.setUniformValue(u_vs_view, glm::mat4(glm::mat3(view)));
-        shader.setUniformValue(u_vs_projection, projection);
-        skyboxVao.bind();
+        m_shader.use();
+        m_shader.setUniformValue(u_vs_view, glm::mat4(glm::mat3(view)));
+        m_shader.setUniformValue(u_vs_projection, projection);
+        m_skyBoxVao.bind();
         glActiveTexture(GL_TEXTURE0);
-        cubeMap.bindTexUnit(0);
+        m_cubeMapPtr->bindTexUnit(0);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        skyboxVao.unbind();
-        shader.unUse();
+        m_skyBoxVao.unbind();
+        m_shader.unUse();
         glDepthFunc(GL_LESS);
     }
 
 private:
-    void initSkyBox(std::array<std::string, 6>& filePaths)
+    void initSkyBox(const std::shared_ptr<CubeMap>& cubeMapPtr, bool isHDR)
     {
         std::array<SkyBoxVertex, 36> skyboxVertices =
         {
@@ -118,29 +117,40 @@ private:
 			SkyBoxVertex{{ 1.0f, -1.0f,  1.0f}}
         };
         
-        VertexBuffer<SkyBoxVertex> vbo;
+        
         unsigned int bindingIndex = 0;
         VertexAttrib positionAttrib = { 0, 3, GL_FLOAT, offsetof(SkyBoxVertex, position) };
-        vbo.setData(skyboxVertices.data(), skyboxVertices.size());
-        skyboxVao.bindVertexBuffer<SkyBoxVertex>(bindingIndex, vbo, 0);
-        skyboxVao.bindVertexArrayAttrib(bindingIndex, positionAttrib, GL_FALSE);
+		m_vbo.setData(skyboxVertices.data(), skyboxVertices.size());
+        m_skyBoxVao.bindVertexBuffer<SkyBoxVertex>(bindingIndex, m_vbo, 0);
+        m_skyBoxVao.bindVertexArrayAttrib(bindingIndex, positionAttrib, GL_FALSE);
 
-        cubeMap.loadFromFiles(filePaths, GL_RGB8, GL_RGB,
-            GL_UNSIGNED_BYTE);
-
-        shader.initShaders({
-            VertexShader::loadFromFile("src/shaders/skybox.vert").getHandler(),
-            FragmentShader::loadFromFile("src/shaders/skybox.frag").getHandler()
-            });
-        shader.use();
-        shader.setUniformValue<int>("skybox", 0);
-        u_vs_view = shader.getUniformVariable<glm::mat4>("view");
-        u_vs_projection = shader.getUniformVariable<glm::mat4>("projection");
+		m_cubeMapPtr = cubeMapPtr;
+    	if (isHDR)
+    	{
+			m_shader.initShaders({
+				VertexShader::loadFromFile("src/shaders/skybox/skybox.vert").getHandler(),
+				FragmentShader::loadFromFile("src/shaders/skybox/skybox_hdr.frag").getHandler()
+			});
+    	}
+    	else
+		{
+			m_shader.initShaders({
+				VertexShader::loadFromFile("src/shaders/skybox/skybox.vert").getHandler(),
+				FragmentShader::loadFromFile("src/shaders/skybox/skybox.frag").getHandler()
+			});
+		}
+        
+        m_shader.use();
+        m_shader.setUniformValue<int>("skybox", 0);
+        u_vs_view = m_shader.getUniformVariable<glm::mat4>("u_view");
+        u_vs_projection = m_shader.getUniformVariable<glm::mat4>("u_projection");
     }
 
 private:
-	VertexArray skyboxVao;
-	ShaderProgram shader;
-	CubeMap cubeMap;
+	VertexArray m_skyBoxVao;
+	VertexBuffer<SkyBoxVertex> m_vbo;
+	ShaderProgram m_shader;
+	std::shared_ptr<CubeMap> m_cubeMapPtr;
+	
     UniformVariable<glm::mat4> u_vs_view, u_vs_projection;
 };

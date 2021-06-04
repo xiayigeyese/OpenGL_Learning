@@ -77,6 +77,12 @@ public:
 		assert(m_handler);
 		glNamedFramebufferTexture(m_handler, attachment, cubeMap.getHandler(), 0);
 	}
+	// use this api: need to attach and draw for each face for cubeMap
+	void attachCubeMapFace(const GLenum attachment, const CubeMap& cubeMap, unsigned int face) const
+	{
+		assert(m_handler);
+		glNamedFramebufferTextureLayer(m_handler, attachment, cubeMap.getHandler(), 0, face);
+	}
 
 	void attachRenderBuffer(const GLenum attachment, const Renderbuffer& renderbuffer) const
 	{
