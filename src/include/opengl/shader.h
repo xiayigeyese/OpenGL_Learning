@@ -115,3 +115,4 @@ private:
 using VertexShader = Shader<GL_VERTEX_SHADER>;
 using FragmentShader = Shader<GL_FRAGMENT_SHADER>;
 using GeometryShader = Shader<GL_GEOMETRY_SHADER>;
+using ComputerShader = Shader<GL_COMPUTE_SHADER>;
