@@ -10,7 +10,7 @@ float RadicalInverse_VdC(uint bits);
 vec2 Hammersley(uint i, uint num);
 vec3 ImportanceSampleGGX(vec2 randomNumber, vec3 N, float roughness);
 
-const float PI = 3.14159265359;
+const float PI = 3.14159265359f;
 
 void main()
 {
@@ -34,9 +34,8 @@ void main()
 			totalWeight += NdotL;
 		}
 	}
-	prefilterColor /= totalWeight;
+    prefilterColor /= totalWeight;
 	fragColor = vec4(prefilterColor, 1.0f);
-	fragColor = vec4(N, 1.0f);
 }
 
 float RadicalInverse_VdC(uint bits) 
@@ -59,7 +58,7 @@ vec3 ImportanceSampleGGX(vec2 randomNumber, vec3 N, float roughness)
 	float alpha = roughness * roughness;
 
 	float phi = 2 * PI * randomNumber.x;
-	float cosTheta = sqrt((1-randomNumber.y) / ((alpha * alpha - 1) + 1));
+	float cosTheta = sqrt((1 - randomNumber.y) / (randomNumber.y * (alpha * alpha - 1) + 1));
 	float sinTheta = sqrt(1 - cosTheta * cosTheta);
 
 	// from spherical coordinates to cartesian coordinates

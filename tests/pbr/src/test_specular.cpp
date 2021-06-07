@@ -30,6 +30,7 @@ void test_specular()
 	// init geometry
 	Sphere sphere(200);
 	Cube cube;
+	Quad quad;
 
 	// set sphere position
 	int yNums = 7, xNums = 7;
@@ -86,15 +87,20 @@ void test_specular()
 		FragmentShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_prefilterMap.frag").getHandler()
 	});
 
-	/*ShaderProgram genBRDFlutShader({
+	ShaderProgram genBRDFlutShader({
 		VertexShader::loadFromFile("tests/pbr/shaders/brdfLUT.vert").getHandler(),
-		FragmentShader::loadFromFile("tests/pbr/shaders/brdfLUT.vert").getHandler()
+		FragmentShader::loadFromFile("tests/pbr/shaders/brdfLUT.frag").getHandler()
+	});
+
+	ShaderProgram showBRDFLutShader({
+		VertexShader::loadFromFile("tests/pbr/shaders/showBRDFLut.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/pbr/shaders/showBRDFLut.frag").getHandler()
 	});
 
 	ShaderProgram pbrShader({
-		VertexShader::loadFromFile("tests/pbr/shaders/pbr_specular.vert").getHandler(),
-		FragmentShader::loadFromFile("tests/pbr/shaders/pbr_specular.vert").getHandler()
-	});*/
+		VertexShader::loadFromFile("tests/pbr/shaders/ibl_specular.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/pbr/shaders/ibl_specular.frag").getHandler()
+	});
 
 	// init fbo
 
@@ -112,12 +118,13 @@ void test_specular()
 	// prefilterMapFBO
 	Framebuffer prefilterMapFBO;
     int prefilterMapWidth = 128, prefilterMapHeight = 128;
-	int mipLevels = 1;
+	int mipLevels = 5;
 	Renderbuffer prefilterMapFBODepth;
 	std::shared_ptr<CubeMap> prefilterMap = make_shared<CubeMap>();
 	prefilterMap->setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	prefilterMap->setTexFilterParameter(GL_LINEAR, GL_LINEAR);
+	prefilterMap->setTexFilterParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	prefilterMap->setTexFormat(mipLevels, GL_RGBA32F, prefilterMapWidth, prefilterMapHeight);
+	prefilterMap->genTexMipMap();
 	
     // BRDFLutFBO
 	Framebuffer brdfLUTFBO;
@@ -128,7 +135,7 @@ void test_specular()
 	std::shared_ptr<Texture2D> brdfLUT = make_shared<Texture2D>();
 	brdfLUT->setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	brdfLUT->setTexFilterParameter(GL_LINEAR, GL_LINEAR);
-	brdfLUT->setTexFormat(1, GL_RGBA32F, brdfLUTWidth, brdfLUTHeight);
+	brdfLUT->setTexFormat(1, GL_RG16F, brdfLUTWidth, brdfLUTHeight);
 	brdfLUTFBO.attachTexture2D(GL_COLOR_ATTACHMENT0, *(brdfLUT.get()));
 
 	// add pass
@@ -147,6 +154,8 @@ void test_specular()
 	UniformVariable<float> genPrefilterMapS_fs_u_roughness = genPrefilterMapShader.getUniformVariable<float>("u_roughness");
 	genPrefilterMapShader.setUniformValue("u_envCubeMap", 0);
 
+	// showBRDFLutShader --> fs
+	showBRDFLutShader.setUniformValue("u_texture", 0);
 
 	// openGL config
 	glEnable(GL_DEPTH_TEST);
@@ -187,65 +196,47 @@ void test_specular()
 	envCubeMapFBO.unbind();
 
 	// pass2 : gen prefilterMap from envCubeMap
-	glViewport(0, 0, prefilterMapWidth, prefilterMapHeight);
 	prefilterMapFBO.bind();
 	genPrefilterMapShader.use();
 	glActiveTexture(0);
 	envCubeMap->bindTexUnit(0);
-	float roughnessT = 0.01f;
-	genPrefilterMapShader.setUniformValue(genPrefilterMapS_fs_u_roughness, roughnessT);
-	prefilterMapFBODepth.allocateStorage(GL_DEPTH_COMPONENT32F, prefilterMapWidth, prefilterMapHeight);
-	prefilterMapFBO.attachRenderBuffer(GL_DEPTH_ATTACHMENT, prefilterMapFBODepth);
-	for (int face = 0; face < 6; face++)
+	float mipRatio = 1.0f;
+	for(int level =0; level < mipLevels;level++)
 	{
-		prefilterMapFBO.attachCubeMapFace(GL_COLOR_ATTACHMENT0, *(prefilterMap.get()), 0, face);
-		if (!prefilterMapFBO.isComplete())
+		int mipWidth = static_cast<int>(static_cast<float>(prefilterMapWidth) * mipRatio);
+	    int mipHeight = static_cast<int>(static_cast<float>(prefilterMapHeight) * mipRatio);
+		mipRatio *= 0.5f;
+		glViewport(0, 0, mipWidth, mipHeight);
+		prefilterMapFBODepth.allocateStorage(GL_DEPTH_COMPONENT32F, mipWidth, mipHeight);
+		prefilterMapFBO.attachRenderBuffer(GL_DEPTH_ATTACHMENT, prefilterMapFBODepth);
+		float roughnessT = static_cast<float>(level) / static_cast<float>(mipLevels - 1);
+		genPrefilterMapShader.setUniformValue(genPrefilterMapS_fs_u_roughness, roughnessT);
+		for (int face = 0; face < 6; face++)
 		{
-			std::cout << " prefilterMapFBO is not complete! " << std::endl;
-			return;
+			prefilterMapFBO.attachCubeMapFace(GL_COLOR_ATTACHMENT0, *(prefilterMap.get()), level, face);
+			if (!prefilterMapFBO.isComplete())
+			{
+				std::cout << " prefilterMapFBO is not complete! " << std::endl;
+				return;
+			}
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			genPrefilterMapShader.setUniformValue(genPrefilterMapS_vs_u_mvp, cubeFaceTransforms[face]);
+			cube.draw();
 		}
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		genPrefilterMapShader.setUniformValue(genPrefilterMapS_vs_u_mvp, cubeFaceTransforms[face]);
-		cube.draw();
 	}
 	genPrefilterMapShader.unUse();
 	prefilterMapFBO.unbind();
+
+	// pass3 : gen brdfLUT
+	glViewport(0, 0, brdfLUTWidth, brdfLUTHeight);
+	brdfLUTFBO.bind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	genBRDFlutShader.use();
+	quad.draw();
+	genBRDFlutShader.unUse();
+	brdfLUTFBO.unbind();
+
 	
-	//prefilterMapFBO.bind();
-	//genPrefilterMapShader.use();
-	//glActiveTexture(0);
-	//envCubeMap->bindTexUnit(0);
-	//float mipRatio = 1.0f;
-	//for(int level =0; level < mipLevels;level++)
-	//{
-	//	int mipWidth = static_cast<int>(static_cast<float>(prefilterMapWidth) * mipRatio);
-	//    int mipHeight = static_cast<int>(static_cast<float>(prefilterMapHeight) * mipRatio);
-	//	mipRatio *= 0.5f;
-	//	
-	//	glViewport(0, 0, mipWidth, mipHeight);
-	//	
-	//	prefilterMapFBODepth.allocateStorage(GL_DEPTH_COMPONENT32F, mipWidth, mipHeight);
-	//	prefilterMapFBO.attachRenderBuffer(GL_DEPTH_ATTACHMENT, prefilterMapFBODepth);
-
-	//	// float roughnessT = static_cast<float>(level) / static_cast<float>(mipLevels - 1);
-	//	float roughnessT = 0;
-	//	genPrefilterMapShader.setUniformValue(genPrefilterMapS_fs_u_roughness, roughnessT);
-	//	for(int face = 0; face < 6; face++)
-	//	{
-	//		prefilterMapFBO.attachCubeMapFace(GL_COLOR_ATTACHMENT0, *(prefilterMap.get()), level, face);
-	//		if (!prefilterMapFBO.isComplete())
-	//		{
-	//			std::cout << " prefilterMapFBO is not complete! " << std::endl;
-	//			return;
-	//		}
-	//		genPrefilterMapShader.setUniformValue(genPrefilterMapS_vs_u_mvp, cubeFaceTransforms[face]);
-	//		cube.draw();
-	//	}
-	//}
-	//genPrefilterMapShader.unUse();
-	//prefilterMapFBO.unbind();
-	// pass3 :
-
 	// pass4 : final
 	glViewport(0, 0, width, height);
 	while(!glfwWindowShouldClose(window))
@@ -254,7 +245,15 @@ void test_specular()
 		cameraController.processKeyPressInput();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		skyBoxPass.renderPass(camera.getViewMatrix(), camera.getProjectionMatrix());
+		// show prefilterMap
+		// skyBoxPass.renderPass(camera.getViewMatrix(), camera.getProjectionMatrix());
+
+		// show brdfLut
+		showBRDFLutShader.use();
+		glActiveTexture(0);
+		brdfLUT->bindTexUnit(0);
+		quad.draw();
+		showBRDFLutShader.unUse();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

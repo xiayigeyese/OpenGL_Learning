@@ -62,8 +62,8 @@ void test_diffuse()
 		FragmentShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_irrMap.frag").getHandler()
 		});
 	ShaderProgram pbrShader({
-		VertexShader::loadFromFile("tests/pbr/shaders/pbr_diffuse.vert").getHandler(),
-		FragmentShader::loadFromFile("tests/pbr/shaders/pbr_diffuse.frag").getHandler()
+		VertexShader::loadFromFile("tests/pbr/shaders/ibl_diffuse.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/pbr/shaders/ibl_diffuse.frag").getHandler()
 		});
 
 	// init fbo

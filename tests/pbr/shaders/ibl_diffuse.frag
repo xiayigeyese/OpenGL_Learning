@@ -93,8 +93,8 @@ void main()
 	vec3 irrandiance = texture(irradianceMap, N).rgb;
 	vec3 ks = F_Fresnel_Schlick(clamp(dot(N, V), 0.0, 1.0), F0);
 	vec3 kd = (1 - ks) * (1 - metallic);
-	vec3 diffuse = kd * albedo * irrandiance;  // irrandiance is divise PI when calculate
-	vec3 ambient = diffuse * ao;
+	vec3 diffuse = albedo * irrandiance;  // irrandiance is divise PI when calculate
+	vec3 ambient = kd * diffuse * ao;
 	// vec3 ambient = vec3(0.03) * albedo * ao;
 
 	// light color
