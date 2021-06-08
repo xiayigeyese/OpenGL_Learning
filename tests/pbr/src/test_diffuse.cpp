@@ -1,7 +1,7 @@
 #include <app/app.h>
 #include <opengl/opengl.h>
 
-#include "test_lighting.h"
+#include "test_pbr.h"
 #include "pass/skyboxPass.h"
 
 using namespace std;
@@ -99,12 +99,12 @@ void test_diffuse()
 	// enMapConvertShader --> vs
 	UniformVariable<glm::mat4> enMapConvertShader_vs_u_mvp = enMapConvertShader.getUniformVariable<glm::mat4>("u_mvp");
 	// enMapConvertShader --> fs
-	enMapConvertShader.setUniformValue("environmentMap", 0);
+	enMapConvertShader.setUniformValue("u_envMap", 0);
 
 	// irrMapConvertShader --> vs
 	UniformVariable<glm::mat4> irrMapConvertShader_vs_u_mvp = irrMapConvertShader.getUniformVariable<glm::mat4>("u_mvp");
 	// irrMapConvertShader --> fs
-	irrMapConvertShader.setUniformValue("envCubeMap", 0);
+	irrMapConvertShader.setUniformValue("u_envCubeMap", 0);
 
 	// pbrShader --> vs
 	UniformVariable<glm::mat4> pbrShader_vs_model = pbrShader.getUniformVariable<glm::mat4>("u_model");

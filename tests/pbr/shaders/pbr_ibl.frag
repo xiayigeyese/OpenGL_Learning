@@ -1,7 +1,7 @@
 #version 330 core
 out vec4 fragColor;
 
-in vec3 fragPos;
+in vec3 fragWorldPos;
 in vec3 fragNormal;
 in vec2 fragTexCoords;
 
@@ -14,6 +14,8 @@ uniform samplerCube u_irradianceMap;
 uniform samplerCube u_prefilterMap;
 uniform sampler2D u_brdfLUT;
 
+uniform float u_maxPrefilterMapMipLevel;
+
 struct Light
 {
 	vec3 position;
@@ -24,7 +26,7 @@ uniform Light u_lights[4];
 uniform vec3 u_viewPos;
 
 const float PI = 3.14159265359f;
-const float maxPrefilterMapMipLevel = 5.0f;
+
 
 float D_GGX_TR(float NdotH, float alpha);
 float G_Schlick_GGX(float cosTheta, float k);
@@ -36,7 +38,7 @@ vec3 FresnelSchlickRoughness(float VdotH, vec3 F0, float roughness);
 void main()
 {
 	vec3 N = fragNormal;
-	vec3 V = normalize(u_viewPos - fragPos);
+	vec3 V = normalize(u_viewPos - fragWorldPos);
 	vec3 R = reflect(-V, N);
 	float NdotV = max(dot(N, V), 0);
 	vec3 F0 = mix(vec3(0.04f), u_albedo, u_metallic);
@@ -46,12 +48,12 @@ void main()
 	for(int i=0;i<4;i++)
 	{
 		// in radiance
-		float dist = distance(u_lights[i].position, fragPos);
+		float dist = distance(u_lights[i].position, fragWorldPos);
 		float attenuation = 1.0f / (dist * dist);
 		vec3 radiance = u_lights[i].color * attenuation;
 
 		// BRDF
-		vec3 L = normalize(u_lights[i].position - fragPos);
+		vec3 L = normalize(u_lights[i].position - fragWorldPos);
 		vec3 H = normalize(V + L);
 		float NdotL = max(dot(N, L), 0);
 		float NdotH = max(dot(N, H), 0);
@@ -82,13 +84,12 @@ void main()
 	vec3 ibl_diffuse = u_albedo * irrandiance; 
 
 	// specular
-	float mipLevel = u_roughness * (maxPrefilterMapMipLevel - 1);
+	float mipLevel = u_roughness * (u_maxPrefilterMapMipLevel - 1);
 	vec3 prefilteredColor = textureLod(u_prefilterMap, R, mipLevel).rgb;
 	vec2 envBRDF = texture(u_brdfLUT, vec2(NdotV, u_roughness)).rg;
 	vec3 ibl_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
-	// vec3 ambient  = (kd * ibl_diffuse  + ibl_specular) * u_ao;
-	vec3 ambient  = (ibl_specular) * u_ao;
+	vec3 ambient  = (kd * ibl_diffuse  + ibl_specular) * u_ao;
 
 	// lightColor
 	vec3 color = ambient + outRadiance;

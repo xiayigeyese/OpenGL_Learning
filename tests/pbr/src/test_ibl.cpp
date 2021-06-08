@@ -3,8 +3,9 @@
 #include <opengl/opengl.h>
 #include <app/app.h>
 
-#include "test_lighting.h"
+#include "test_pbr.h"
 #include "pass/skyboxPass.h"
+#include "pass/iblPass.h"
 
 using namespace std;
 using namespace glm;
@@ -13,7 +14,7 @@ void test_ibl_scene1()
 {
 	// init app
 	const int width = 1000, height = 800;
-	Application app("pbr_diffuse", width, height);
+	Application app("pbr_ibl", width, height);
 	GLFWwindow* window = app.getWindow();
 	Input* input = app.getInput();
 
@@ -78,21 +79,20 @@ void test_ibl_scene1()
 	envMap.setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	envMap.setTexFilterParameter(GL_LINEAR, GL_LINEAR);
 
-
 	// load shader
 	ShaderProgram genEnvCubeMapShader({
 		VertexShader::loadFromFile("tests/pbr/shaders/envMap_to_envCubeMap.vert").getHandler(),
 		FragmentShader::loadFromFile("tests/pbr/shaders/envMap_to_envCubeMap.frag").getHandler()
 		});
 
-	ShaderProgram genPrefilterMapShader({
-		VertexShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_prefilterMap.vert").getHandler(),
-		FragmentShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_prefilterMap.frag").getHandler()
-		});
-
 	ShaderProgram genIrrMapShader({
 		VertexShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_irrMap.vert").getHandler(),
 		FragmentShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_irrMap.frag").getHandler()
+		});
+	
+	ShaderProgram genPrefilterMapShader({
+		VertexShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_prefilterMap.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/pbr/shaders/envCubeMap_to_prefilterMap.frag").getHandler()
 		});
 
 	ShaderProgram genBRDFlutShader({
@@ -104,7 +104,6 @@ void test_ibl_scene1()
 		VertexShader::loadFromFile("tests/pbr/shaders/pbr_ibl.vert").getHandler(),
 		FragmentShader::loadFromFile("tests/pbr/shaders/pbr_ibl.frag").getHandler()
 		});
-
 
 	// init fbo
 
@@ -130,7 +129,6 @@ void test_ibl_scene1()
 	irradianceMap->setTexFilterParameter(GL_LINEAR, GL_LINEAR);
 	irradianceMap->setTexFormat(1, GL_RGB16F, irradianceMapWith, irradianceMapHeight);
 
-	
 	// prefilterMapFBO
 	Framebuffer prefilterMapFBO;
 	int prefilterMapWidth = 128, prefilterMapHeight = 128;
@@ -153,8 +151,9 @@ void test_ibl_scene1()
 	brdfLUT->setTexFilterParameter(GL_LINEAR, GL_LINEAR);
 	brdfLUT->setTexFormat(1, GL_RG16F, brdfLUTWidth, brdfLUTHeight);
 	brdfLUTFBO.attachTexture2D(GL_COLOR_ATTACHMENT0, *(brdfLUT.get()));
-
+	
 	// add pass
+	// SkyBoxPass skyBoxPass(prefilterMap, true);
 	SkyBoxPass skyBoxPass(envCubeMap, true);
 
 	// shader set uniform
@@ -162,19 +161,18 @@ void test_ibl_scene1()
 	// genEnvCubeMapShader --> vs
 	UniformVariable<glm::mat4> genEnvCubeMapS_vs_u_mvp = genEnvCubeMapShader.getUniformVariable<glm::mat4>("u_mvp");
 	// genEnvCubeMapShader --> fs
-	genEnvCubeMapShader.setUniformValue("environmentMap", 0);
-
+	genEnvCubeMapShader.setUniformValue("u_envMap", 0);
+	
 	// genIrrMapShader --> vs
-	UniformVariable<glm::mat4> genIrrMapS_vs_u_mvp = genIrrMapShader.getUniformVariable<glm::mat4>("u_mvp");
+	UniformVariable<glm::mat4> genIrrMapS_vs_mvp = genIrrMapShader.getUniformVariable<glm::mat4>("u_mvp");
 	// genIrrMapShader --> fs
-	genIrrMapShader.setUniformValue("envCubeMap", 0);
-
+	genIrrMapShader.setUniformValue("u_envCubeMap", 0);
+	
 	// genPrefilterMapShader --> vs
 	UniformVariable<glm::mat4> genPrefilterMapS_vs_u_mvp = genPrefilterMapShader.getUniformVariable<glm::mat4>("u_mvp");
 	// genPrefilterMapShader --> fs
 	UniformVariable<float> genPrefilterMapS_fs_u_roughness = genPrefilterMapShader.getUniformVariable<float>("u_roughness");
 	genPrefilterMapShader.setUniformValue("u_envCubeMap", 0);
-
 
 	// iblShader --> vs
 	UniformVariable<glm::mat4> iblS_vs_model = iblShader.getUniformVariable<glm::mat4>("u_model");
@@ -190,9 +188,9 @@ void test_ibl_scene1()
 	iblShader.setUniformValue("u_ao", 1.0f);
 	UniformVariable<float> iblS_fs_metallic = iblShader.getUniformVariable<float>("u_metallic");
 	UniformVariable<float> iblS_fs_roughness = iblShader.getUniformVariable<float>("u_roughness");
-
+	iblShader.setUniformValue("u_maxPrefilterMapMipLevel", static_cast<float>(mipLevels));
 	iblShader.setUniformValue("u_irradianceMap", 0);
-	iblShader.setUniformValue("u_prefilterMap", 1);
+	iblShader.setUniformValue("u_prefilterMap", 1); 
 	iblShader.setUniformValue("u_brdfLUT", 2);
 
 	// openGL config
@@ -236,22 +234,22 @@ void test_ibl_scene1()
 	// gen envCubeMap mipmap
 	envCubeMap->genTexMipMap();
 
-	// pass2: convert envCubeMap to irradianceMap
+	// pass2 : convert envCubeMap to irradianceMap
 	glViewport(0, 0, irradianceMapWith, irradianceMapHeight);
 	irradianceMapFBO.bind();
 	genIrrMapShader.use();
 	glActiveTexture(0);
 	envCubeMap->bindTexUnit(0);
-	for (int i = 0; i < 6; i++)
+	for(int face=0;face<6;face++)
 	{
-		irradianceMapFBO.attachCubeMapFace(GL_COLOR_ATTACHMENT0, *(irradianceMap.get()), 0, i);
+		irradianceMapFBO.attachCubeMapFace(GL_COLOR_ATTACHMENT0, *(irradianceMap.get()), 0, face);
 		if (!irradianceMapFBO.isComplete())
 		{
 			std::cout << "irradianceMapFBO is not complete! " << std::endl;
 			return;
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		genIrrMapShader.setUniformValue(genIrrMapS_vs_u_mvp, cubeFaceTransforms[i]);
+		genIrrMapShader.setUniformValue(genIrrMapS_vs_mvp, cubeFaceTransforms[face]);
 		cube.draw();
 	}
 	genIrrMapShader.unUse();
@@ -268,9 +266,11 @@ void test_ibl_scene1()
 		int mipWidth = static_cast<int>(static_cast<float>(prefilterMapWidth) * mipRatio);
 		int mipHeight = static_cast<int>(static_cast<float>(prefilterMapHeight) * mipRatio);
 		mipRatio *= 0.5f;
+		
 		glViewport(0, 0, mipWidth, mipHeight);
 		prefilterMapFBODepth.allocateStorage(GL_DEPTH_COMPONENT32F, mipWidth, mipHeight);
 		prefilterMapFBO.attachRenderBuffer(GL_DEPTH_ATTACHMENT, prefilterMapFBODepth);
+		
 		float roughnessT = static_cast<float>(level) / static_cast<float>(mipLevels - 1);
 		genPrefilterMapShader.setUniformValue(genPrefilterMapS_fs_u_roughness, roughnessT);
 		for (int face = 0; face < 6; face++)
@@ -335,4 +335,156 @@ void test_ibl_scene1()
 		glfwPollEvents();
 	}
 	glfwTerminate();
+}
+
+void test_ibl_scene2()
+{
+	// init app
+	const int width = 1000, height = 800;
+	Application app("pbr_ibl", width, height);
+	GLFWwindow* window = app.getWindow();
+	Input* input = app.getInput();
+
+	// set camera
+	Camera camera = Camera::perspectiveCamera(
+		vec3(0, 0, 3),
+		vec3(0, 0, 1),
+		vec3(0, 1, 0),
+		45.0f,
+		static_cast<float>(width) / height,
+		0.1f,
+		100.0f
+	);
+	CameraController cameraController(&camera, input);
+
+	// init geometry
+	Sphere sphere(200);
+	Cube cube;
+	Quad quad;
+
+	// set sphere position
+	int yNums = 7, xNums = 7;
+	float spacing = 2.5;
+	glm::mat4 model = glm::mat4(1.0f);
+	vector<mat4> worldMatrix(yNums * xNums);
+	vector<float> metallic(yNums);
+	vector<float> roughness(xNums);
+	for (int y = 0; y < yNums; y++)
+	{
+		metallic[y] = static_cast<float>(y) / static_cast<float>(yNums);
+		for (int x = 0; x < xNums; x++)
+		{
+			roughness[x] = glm::clamp(static_cast<float>(x) / static_cast<float>(xNums), 0.05f, 1.0f);
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(
+				static_cast<float>(x - (xNums / 2)) * spacing,
+				static_cast<float>(y - (yNums / 2)) * spacing,
+				0.0f
+			));
+			worldMatrix[x + y * xNums] = model;
+		}
+	}
+
+	// lights
+	// ------
+	glm::vec3 lightPositions[] = {
+		glm::vec3(-10.0f,  10.0f, 10.0f),
+		glm::vec3(10.0f,  10.0f, 10.0f),
+		glm::vec3(-10.0f, -10.0f, 10.0f),
+		glm::vec3(10.0f, -10.0f, 10.0f),
+	};
+	glm::vec3 lightColors[] = {
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f)
+	};
+
+	// load texture
+	std::shared_ptr<Texture2D> envMap = std::make_shared<Texture2D>();
+	envMap->loadFromFile("resources/textures/hdr/newport_loft.hdr", 1);
+	envMap->setTexWrapParameter(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	envMap->setTexFilterParameter(GL_LINEAR, GL_LINEAR);
+
+	// iblShader
+	ShaderProgram iblShader({
+		VertexShader::loadFromFile("tests/pbr/shaders/pbr_ibl.vert").getHandler(),
+		FragmentShader::loadFromFile("tests/pbr/shaders/pbr_ibl.frag").getHandler()
+		});
+	
+	// ibl pass
+	IBLPass iblPass(envMap);
+	// openGL config
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	iblPass.renderPass();
+	std::shared_ptr<CubeMap> envCubeMap = iblPass.getEnvCubeMap();
+	std::shared_ptr<CubeMap> irradianceMap = iblPass.getIrradianceMap();
+	std::shared_ptr<CubeMap> prefilterMap = iblPass.getPrefilterMap();
+	std::shared_ptr<Texture2D> brdfLut = iblPass.getBRDFLut();
+	float maxPrefilterMapMipLevel = static_cast<float>(iblPass.getPrefilterMapMaxMipLevel());
+
+	// skybox pass
+	SkyBoxPass skyBoxPass(envCubeMap, true);
+
+	// set shader uniform
+	
+	// iblShader --> vs
+	UniformVariable<glm::mat4> iblS_vs_model = iblShader.getUniformVariable<glm::mat4>("u_model");
+	UniformVariable<glm::mat4> iblS_vs_mvp = iblShader.getUniformVariable<glm::mat4>("u_mvp");
+	// iblShader --> fs
+	for (int i = 0; i < 4; i++)
+	{
+		iblShader.setUniformValue("u_lights[" + to_string(i) + "].position", lightPositions[i]);
+		iblShader.setUniformValue("u_lights[" + to_string(i) + "].color", lightColors[i]);
+	}
+	UniformVariable<vec3> iblS_fs_viewPos = iblShader.getUniformVariable<glm::vec3>("u_viewPos");
+	iblShader.setUniformValue("u_albedo", vec3(0.5f, 0.0f, 0.0f));
+	iblShader.setUniformValue("u_ao", 1.0f);
+	UniformVariable<float> iblS_fs_metallic = iblShader.getUniformVariable<float>("u_metallic");
+	UniformVariable<float> iblS_fs_roughness = iblShader.getUniformVariable<float>("u_roughness");
+	iblShader.setUniformValue("u_maxPrefilterMapMipLevel", maxPrefilterMapMipLevel);
+	iblShader.setUniformValue("u_irradianceMap", 0);
+	iblShader.setUniformValue("u_prefilterMap", 1);
+	iblShader.setUniformValue("u_brdfLUT", 2);
+
+	
+	// pass5 : final
+	glViewport(0, 0, width, height);
+	while (!glfwWindowShouldClose(window))
+	{
+		app.getKeyPressInput();
+		cameraController.processKeyPressInput();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		iblShader.use();
+		glActiveTexture(0);
+		irradianceMap->bindTexUnit(0);
+		glActiveTexture(1);
+		prefilterMap->bindTexUnit(1);
+		glActiveTexture(2);
+		brdfLut->bindTexUnit(2);
+		iblShader.setUniformValue(iblS_fs_viewPos, camera.getPosition());
+		for (int y = 0; y < yNums; y++)
+		{
+			iblShader.setUniformValue(iblS_fs_metallic, metallic[y]);
+			for (int x = 0; x < xNums; x++)
+			{
+				iblShader.setUniformValue(iblS_fs_roughness, roughness[x]);
+				int index = x + y * xNums;
+				iblShader.setUniformValue(iblS_vs_model, worldMatrix[index]);
+				glm::mat4 mvp = camera.getProjectionMatrix() * camera.getViewMatrix() * worldMatrix[index];
+				iblShader.setUniformValue(iblS_vs_mvp, mvp);
+				sphere.draw();
+			}
+		}
+		iblShader.unUse();
+
+		skyBoxPass.renderPass(camera.getViewMatrix(), camera.getProjectionMatrix());
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+	glfwTerminate();
+	
 }

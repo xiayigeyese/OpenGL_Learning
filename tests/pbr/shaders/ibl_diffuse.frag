@@ -17,7 +17,7 @@ uniform vec3 albedo;
 uniform float metallic;
 uniform float roughness;
 uniform float ao;
-uniform samplerCube irradianceMap;
+uniform samplerCube u_irradianceMap;
 
 // other
 uniform Light light[4];
@@ -53,6 +53,7 @@ vec3 F_Fresnel_Schlick(float cosTheta, vec3 F0)
 	return F0 + (1.0 - F0) * pow(1 - cosTheta, 5.0f);
 }
 
+
 void main()
 {
 	vec3 V = normalize(viewPos - fragWorldPos);
@@ -67,7 +68,7 @@ void main()
 		float attenuation = 1.0f / (dist * dist);
 		vec3 radiance = light[i].color * attenuation;
 
-		// BRDF -- kf * f_specular
+		// BRDF -- ks * f_specular
 		vec3 L = normalize(light[i].position - fragWorldPos);
 		vec3 H = normalize(L + V);
 		float D = D_GGX_TR(N, H, roughness * roughness);
@@ -90,7 +91,7 @@ void main()
 	}
 
 	// ambient -- IBL £º diffuse
-	vec3 irrandiance = texture(irradianceMap, N).rgb;
+	vec3 irrandiance = texture(u_irradianceMap, N).rgb;
 	vec3 ks = F_Fresnel_Schlick(clamp(dot(N, V), 0.0, 1.0), F0);
 	vec3 kd = (1 - ks) * (1 - metallic);
 	vec3 diffuse = albedo * irrandiance;  // irrandiance is divise PI when calculate

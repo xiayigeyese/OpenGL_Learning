@@ -1,7 +1,7 @@
 #include <app/app.h>
 #include <opengl/opengl.h>
 
-#include "test_lighting.h"
+#include "test_pbr.h"
 #include "pass/skyboxPass.h"
 
 using namespace std;
@@ -147,7 +147,7 @@ void test_specular()
 	// genEnvCubeMapShader --> vs
 	UniformVariable<glm::mat4> genEnvCubeMapS_vs_u_mvp = genEnvCubeMapShader.getUniformVariable<glm::mat4>("u_mvp");
 	// genEnvCubeMapShader --> fs
-	genEnvCubeMapShader.setUniformValue("environmentMap", 0);
+	genEnvCubeMapShader.setUniformValue("u_envMap", 0);
 	
 	// genPrefilterMapShader --> vs
 	UniformVariable<glm::mat4> genPrefilterMapS_vs_u_mvp = genPrefilterMapShader.getUniformVariable<glm::mat4>("u_mvp");

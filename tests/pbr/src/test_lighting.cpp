@@ -1,7 +1,7 @@
 #include <app/app.h>
 #include <opengl/opengl.h>
 
-#include "test_lighting.h"
+#include "test_pbr.h"
 #include "pass/skyboxPass.h"
 
 using namespace std;

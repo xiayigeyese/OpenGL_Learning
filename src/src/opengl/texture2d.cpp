@@ -1,6 +1,5 @@
 #include <string>
 #include <iostream>
-#include <array>
 #include <stb_image.h>
 #include <opengl/texture2d.h>
 
@@ -39,7 +38,10 @@ void Texture2D::loadHDRFile(const std::string& filePath, unsigned int mipmapLeve
 		internalFormat = GL_RGBA16F;
 		format = GL_RGBA;
 	}
-
+	if (mipmapLevels == Texture2D::MAX_MIPMAP)
+	{
+		mipmapLevels = static_cast<int>(std::log2((width < height ? width : height)));
+	}
 	setTexFormat(mipmapLevels, internalFormat, width, height);
 	setTexImageData(width, height, format, type, data);
 	setTexFilterParameter(GL_LINEAR, GL_LINEAR);
@@ -72,7 +74,10 @@ void Texture2D::loadCommonFile(const std::string& filePath, unsigned int mipmapL
 		internalFormat = GL_RGBA8;
 		format = GL_RGBA;
 	}
-
+	if (mipmapLevels == Texture2D::MAX_MIPMAP)
+	{
+		mipmapLevels = static_cast<int>(std::log2((width < height ? width : height)));
+	}
 	loadFromMemory(width, height, mipmapLevels, internalFormat, format, type, data);
 	stbi_image_free(data);
 }

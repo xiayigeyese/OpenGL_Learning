@@ -5,13 +5,17 @@ in vec3 fragWorldPos;
 in vec3 fragNormal;
 in vec2 fragTexCoords;
 
-uniform vec3 u_albedo;
-uniform float u_metallic;
-uniform float u_roughness;
-uniform float u_ao;
-
+uniform samplerCube u_irradianceMap;
 uniform samplerCube u_prefilterMap;
 uniform sampler2D u_brdfLUT;
+
+uniform float u_maxPrefilterMapMipLevel;
+
+uniform sampler2D u_albedoMap;
+uniform sampler2D u_normalMap;
+uniform sampler2D u_metallicMap;
+uniform sampler2D u_roughnessMap;
+uniform sampler2D u_aoMap;
 
 struct Light
 {
@@ -23,7 +27,8 @@ uniform Light u_lights[4];
 uniform vec3 u_viewPos;
 
 const float PI = 3.14159265359f;
-const float maxPrefilterMapMipLevel = 5.0f;
+
+vec3 getNormalFromMap();
 
 float D_GGX_TR(float NdotH, float alpha);
 float G_Schlick_GGX(float cosTheta, float k);
@@ -34,11 +39,16 @@ vec3 FresnelSchlickRoughness(float VdotH, vec3 F0, float roughness);
 
 void main()
 {
-	vec3 N = fragNormal;
+    vec3 albedo = pow(texture(u_albedoMap, fragTexCoords).rgb, vec3(2.2f));
+	float metallic = texture(u_metallicMap, fragTexCoords).r;
+	float roughness = texture(u_roughnessMap, fragTexCoords).r;
+	float ao = texture(u_aoMap, fragTexCoords).r;
+
+	vec3 N = getNormalFromMap();
 	vec3 V = normalize(u_viewPos - fragWorldPos);
 	vec3 R = reflect(-V, N);
 	float NdotV = max(dot(N, V), 0);
-	vec3 F0 = mix(vec3(0.04f), u_albedo, u_metallic);
+	vec3 F0 = mix(vec3(0.04f), albedo, metallic);
 
 	// direct lights
 	vec3 outRadiance = vec3(0.0);
@@ -56,15 +66,15 @@ void main()
 		float NdotH = max(dot(N, H), 0);
 		float VdotH = max(dot(V, H), 0);
 		// BRDF --> ks * f_spcular
-		float D = D_GGX_TR(NdotH, u_roughness * u_roughness);
-		float G = G_Smith_direct(NdotL, NdotV, u_roughness);
+		float D = D_GGX_TR(NdotH, roughness * roughness);
+		float G = G_Smith_direct(NdotL, NdotV, roughness);
 		vec3 F = F_Fresnel_Schlick(VdotH, F0);
 		float denominator = 4 * NdotL * NdotV;
 		vec3 fSpecular = D * F * G / max(denominator, 0.001);
         // BRDF --> kd * f_lambert
 		vec3 ks = F;
-		vec3 kd = (1-ks) * (1-u_metallic);
-		vec3 fLambert = kd * u_albedo / PI;
+		vec3 kd = (1-ks) * (1-metallic);
+		vec3 fLambert = kd * albedo / PI;
         // BRDF
 		vec3 brdf = fLambert + fSpecular;
 
@@ -72,15 +82,21 @@ void main()
 		outRadiance += radiance * brdf * NdotL;
 	}
 
-	// ambient -- IBL : specular
-	vec3 F = FresnelSchlickRoughness(NdotV, F0, u_roughness);
-	// linear
-	float mipLevel = u_roughness * (maxPrefilterMapMipLevel - 1);
-	vec3 prefilteredColor = textureLod(u_prefilterMap, R, mipLevel).rgb;
-	vec2 envBRDF = texture(u_brdfLUT, vec2(NdotV, u_roughness)).rg;
-	vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+	// ambient -- IBL
+	vec3 F = FresnelSchlickRoughness(NdotV, F0, roughness);
+	// diffuse
+	vec3 irrandiance = texture(u_irradianceMap, N).rgb;
+	vec3 ks =  F;
+	vec3 kd = (1 - ks) * (1 - metallic);
+	vec3 ibl_diffuse = albedo * irrandiance; 
 
-	vec3 ambient  = specular * u_ao;
+	// specular
+	float mipLevel = roughness * (u_maxPrefilterMapMipLevel - 1);
+	vec3 prefilteredColor = textureLod(u_prefilterMap, R, mipLevel).rgb;
+	vec2 envBRDF = texture(u_brdfLUT, vec2(NdotV, roughness)).rg;
+	vec3 ibl_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+
+	vec3 ambient  = (kd * ibl_diffuse  + ibl_specular) * ao;
 
 	// lightColor
 	vec3 color = ambient + outRadiance;
@@ -90,6 +106,23 @@ void main()
 	color = pow(color, vec3(1.0 / 2.2));
 
 	fragColor = vec4(color, 1.0f);
+}
+
+vec3 getNormalFromMap()
+{
+    vec3 tangentNormal = texture(u_normalMap, fragTexCoords).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(fragWorldPos);
+    vec3 Q2  = dFdy(fragWorldPos);
+    vec2 st1 = dFdx(fragTexCoords);
+    vec2 st2 = dFdy(fragTexCoords);
+
+    vec3 N   = fragNormal;
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
 }
 
 float D_GGX_TR(float NdotH, float alpha)

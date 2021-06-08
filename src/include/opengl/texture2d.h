@@ -5,10 +5,10 @@
 
 #include "texture.h"
 
-
 class Texture2D: public Texture
 {
 public:
+	static constexpr unsigned int MAX_MIPMAP = 0;
 	Texture2D()
 	{
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_handler);
