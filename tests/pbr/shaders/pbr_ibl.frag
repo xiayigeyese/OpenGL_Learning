@@ -10,6 +10,7 @@ uniform float u_metallic;
 uniform float u_roughness;
 uniform float u_ao;
 
+uniform samplerCube u_irradianceMap;
 uniform samplerCube u_prefilterMap;
 uniform sampler2D u_brdfLUT;
 
@@ -72,15 +73,22 @@ void main()
 		outRadiance += radiance * brdf * NdotL;
 	}
 
-	// ambient -- IBL : specular
+	// ambient -- IBL
 	vec3 F = FresnelSchlickRoughness(NdotV, F0, u_roughness);
-	// linear
+	// diffuse
+	vec3 irrandiance = texture(u_irradianceMap, N).rgb;
+	vec3 ks =  F;
+	vec3 kd = (1 - ks) * (1 - u_metallic);
+	vec3 ibl_diffuse = u_albedo * irrandiance; 
+
+	// specular
 	float mipLevel = u_roughness * (maxPrefilterMapMipLevel - 1);
 	vec3 prefilteredColor = textureLod(u_prefilterMap, R, mipLevel).rgb;
 	vec2 envBRDF = texture(u_brdfLUT, vec2(NdotV, u_roughness)).rg;
-	vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+	vec3 ibl_specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
-	vec3 ambient  = specular * u_ao;
+	// vec3 ambient  = (kd * ibl_diffuse  + ibl_specular) * u_ao;
+	vec3 ambient  = (ibl_specular) * u_ao;
 
 	// lightColor
 	vec3 color = ambient + outRadiance;

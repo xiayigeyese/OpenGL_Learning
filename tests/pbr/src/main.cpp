@@ -9,5 +9,6 @@ int main()
 	// test_lighting();
 	// test_sphere();
 	// test_diffuse();
-	test_specular();
+	// test_specular();
+	test_ibl_scene1();
 }
