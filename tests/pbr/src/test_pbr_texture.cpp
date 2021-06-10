@@ -11,9 +11,7 @@ using namespace std;
 using namespace glm;
 
 void test_pbr_texture()
-{
-	cout << std::log2(2048) << endl;
-	
+{	
 	// init app
 	const int width = 1000, height = 800;
 	Application app("pbr_texture", width, height);

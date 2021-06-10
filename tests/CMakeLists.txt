@@ -8,8 +8,6 @@ add_subdirectory(hdr_bloom)
 
 add_subdirectory(deferredShader)
 
-add_subdirectory(csLearn)
-
 add_subdirectory(ssao)
 
 add_subdirectory(pbr)
